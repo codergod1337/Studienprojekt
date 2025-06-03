@@ -1,9 +1,0 @@
-{
-    "selected_model": "vehicle.tesla.model3",
-    "sgg_enabled": true,
-    "available_carla_versions": [
-        "CARLA_0.9.14",
-        "CARLA_0.9.15"
-    ],
-    "carla_version": "CARLA_0.9.14"
-}
