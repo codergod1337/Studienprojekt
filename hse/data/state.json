@@ -1,0 +1,46 @@
+{
+    "host": "localhost",
+    "port": 2000,
+    "timeout": 15.0,
+    "carla_version": "CARLA_0.9.14",
+    "model": "vehicle.tesla.model3",
+    "autopilot": false,
+    "sgg_enabled": false,
+    "controls": {
+        "throttle": {
+            "type": "axis",
+            "id": 3
+        },
+        "brake": {
+            "type": "button",
+            "id": 12
+        },
+        "reverse": {
+            "type": "button",
+            "id": 7
+        },
+        "respawn": {
+            "type": "button",
+            "id": 0
+        },
+        "cam_switch": {
+            "type": "button",
+            "id": 2
+        },
+        "record": {
+            "type": "button",
+            "id": 3
+        },
+        "steering": {
+            "type": "axis",
+            "id": 0
+        }
+    },
+    "sgg_loaded": true,
+    "invert_axes": {
+        "3": true,
+        "2": false,
+        "1": false,
+        "0": false
+    }
+}
