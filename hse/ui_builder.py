@@ -36,20 +36,37 @@ def build_ui(window):
     toolButton.setText("Connect")
     layout_connector.addRow("", toolButton)
 
+
+    # Vehicle-Label
     label_vehicle = QLabel("—", group_connector)
     label_vehicle.setEnabled(False)
     layout_connector.addRow("Vehicle:", label_vehicle)
 
+    # CARLA-Version-Label
     label_version = QLabel("—", group_connector)
     label_version.setEnabled(False)
     layout_connector.addRow("CARLA Version:", label_version)
 
-    refs["input_ip"] = input_ip
-    refs["input_port"] = input_port
-    refs["toolButton"] = toolButton
-    refs["label_status"] = label_status
+    # Camera-Position-Label
+    label_camera = QLabel("—", group_connector)
+    label_camera.setEnabled(False)
+    layout_connector.addRow("Camera Position:", label_camera)
+
+    # Spawn Vehicle Button (initial disabled)
+    spawn_button = QPushButton("Spawn Vehicle", group_connector)
+    spawn_button.setEnabled(False)
+    layout_connector.addRow("", spawn_button)
+
+    # Widget-Refs für ControlPanel
+    refs["input_ip"]      = input_ip
+    refs["input_port"]    = input_port
+    refs["toolButton"]    = toolButton
+    refs["label_status"]  = label_status
     refs["label_vehicle"] = label_vehicle
     refs["label_version"] = label_version
+    refs["label_camera"]  = label_camera
+    refs["spawn_button"]  = spawn_button
+
 
     # === SGG GroupBox mit Layout ===
     group_sgg = QGroupBox("Scene Graph Generator", central_widget)
@@ -130,14 +147,21 @@ def build_ui(window):
 
     action_pull_sgg = QAction("pull SGG", window)
     action_exit = QAction("exit", window)
-    action_vehicle = QAction("vehicle", window)
+        #action_vehicle = QAction("vehicle", window)
     action_controls = QAction("controls", window)
+
+    # Untermenü, später mit allen Blueprints befüllt
+    menu_vehicle = QMenu("Vehicle", window)
+    menu_carla.addMenu(menu_vehicle)
+    # ── Camera‐Submenü ──
+    menu_camera = QMenu("Camera", window)
+    menu_carla.addMenu(menu_camera)
 
     menu_file.addAction(action_pull_sgg)
     menu_file.addSeparator()
     menu_file.addAction(action_exit)
 
-    menu_carla.addAction(action_vehicle)
+        #menu_carla.addAction(action_vehicle)
 
     menu_controls.addAction(action_controls)
 
@@ -151,6 +175,8 @@ def build_ui(window):
     #refs["action_exit"] = action_exit
     #refs["action_vehicle"] = action_vehicle
     refs["action_controls"] = action_controls
+    refs["menu_vehicle"] = menu_vehicle
+    refs["menu_camera"] = menu_camera
 
     # === Statusbar ===
     statusbar = QStatusBar(window)

@@ -3,7 +3,7 @@
     "port": 2000,
     "timeout": 15.0,
     "carla_version": "CARLA_0.9.14",
-    "model": "vehicle.tesla.model3",
+    "model": "vehicle.bh.crossbike",
     "autopilot": false,
     "sgg_enabled": false,
     "controls": {
@@ -42,5 +42,6 @@
         "2": false,
         "1": false,
         "0": false
-    }
+    },
+    "camera_selected": "bird"
 }

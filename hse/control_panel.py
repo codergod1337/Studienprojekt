@@ -8,14 +8,14 @@ from pathlib import Path
 from typing import Dict, Any
 
 from PyQt5.QtCore import QObject, QEvent, QTimer, QThread, pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QMainWindow, QComboBox, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QComboBox, QMessageBox, QAction
 
 from hse.ui_builder import build_ui
 from hse.data_manager import DataManager
 from hse.utils.settings import CARLA_DIR, SGG_DIR, DEFAULT_VALUES
 from hse.controler_manager import JoystickVisualizer, ControlerManager
 from hse.carla_connector import CarlaConnector
-
+from hse.utils.settings import CAMERA_POSITIONS
 
 
 class ControlPanel(QMainWindow):
@@ -24,11 +24,17 @@ class ControlPanel(QMainWindow):
         self.data = DataManager()                   # ← DataManager laden
         self.cm = controler_manager                 # ← ControlerManager von außen übernehmen
         self.connector = connector                  # ← CarlaConnector von außen übernehmen
+        
+        self.connector.set_controler_manager(self.cm) # ControlerManager an den Connector übergeben, damit er .get_current_control() nutzt
 
         self.refs = build_ui(self)
         self._init_values_from_data()               # ← Werte aus JSON setzen
         self._init_connections()
         self._carla_pid = None                      # Merke PID lokal
+
+        # Spawn-Button deaktiviert, bis connect + Modell
+        self.refs["spawn_button"].setEnabled(False)
+        self._connected = False
 
         # Verbindung zur Menü-Action "controls":
         self.refs["action_controls"].triggered.connect(self._open_control_manager)
@@ -46,11 +52,18 @@ class ControlPanel(QMainWindow):
         self._input_worker.update_signal.connect(self._update_input_fields)
         self._input_thread.start()
 
+        # Camera Positionen laden
+        self._populate_camera_menu()
 
 
-        # Connector-Signal abonnieren (für später)
+        # Connector-Signal abonnieren (für nach carla connect)
         self.connector.connection_result.connect(self._on_connector_result)
+        self.connector.blueprints_loaded.connect(self._populate_vehicle_menu)
+        self.connector.vehicle_model_selected.connect(self._update_vehicle_label)
+        self.connector.camera_position_selected.connect(self._update_camera_label)
 
+        # Spawn-Button klick → Connector.spawn_vehicle
+        self.refs["spawn_button"].clicked.connect(self._on_spawn_clicked)
 
     def _open_control_manager(self):
         """Öffnet das Joystick-Visualisierungs-Fenster."""
@@ -60,6 +73,21 @@ class ControlPanel(QMainWindow):
         else:
             self._control_win = JoystickVisualizer(self.cm)
             self._control_win.show()
+
+    def _populate_camera_menu(self):
+        """Füllt CARLA→Camera mit den in settings definierten Perspektiven."""
+        menu = self.refs["menu_camera"]
+        menu.clear()
+        for cam in CAMERA_POSITIONS.keys():
+            act = QAction(cam, self)
+            act.triggered.connect(lambda _, c=cam: self.connector.set_camera_position(c))
+            menu.addAction(act)
+
+
+    @pyqtSlot(str)
+    def _update_camera_label(self, cam_id: str):
+        """Aktualisiert das Label in der Connector-GroupBox."""
+        self.refs["label_camera"].setText(cam_id)
 
 
     def closeEvent(self, event):
@@ -190,8 +218,19 @@ class ControlPanel(QMainWindow):
         Setzt Status-Label grün oder rot.
         """
         if success:
+            self._connected = True
             self.refs["label_status"].setText("🟢 Connected")
             self.refs["label_status"].setStyleSheet("color: green; font-weight: bold;")
+            # CARLA-Version im UI anzeigen
+            version = self.data.get("carla_version")
+            self.refs["label_version"].setText(version)
+            # sobald verbunden, initial Camera-Label (falls der Connector das Signal noch nicht geschickt hat):
+            cam = self.data.get("camera_selected", "free")
+            self.refs["label_camera"].setText(cam)
+            
+            # Spawn-Button aktivieren, wenn schon ein Modell gewählt
+            if self.data.get("model"):
+                self.refs["spawn_button"].setEnabled(True)            
         else:
             self.refs["label_status"].setText("🔴 Disconnected")
             self.refs["label_status"].setStyleSheet("color: red; font-weight: bold;")
@@ -210,6 +249,18 @@ class ControlPanel(QMainWindow):
         except (ValueError, psutil.NoSuchProcess):
             return False
 
+    @pyqtSlot(str)
+    def _on_model_selected(self, model_id: str):
+        """Wenn der Connector meldet, dass ein Modell gewählt wurde."""
+        # Label updaten (bereits in _update_vehicle_label) …
+        # Spawn-Button nur aktiv, wenn wir verbunden sind
+        if self._connected:
+            self.refs["spawn_button"].setEnabled(True)
+
+    @pyqtSlot()
+    def _on_spawn_clicked(self):
+        """Leite Klick an Connector weiter."""
+        self.connector.spawn_vehicle()
 
     def _on_start_carla_process(self):
         """Startet CARLA als separaten Prozess und speichert die PID."""
@@ -299,6 +350,25 @@ class ControlPanel(QMainWindow):
             self.refs["label_sgg_status"].setText("🔴 Fehler beim Laden")
             self.refs["label_sgg_status"].setStyleSheet("color: red; font-weight: bold;")
             self.data.set("sgg_loaded", False)
+
+
+    def _populate_vehicle_menu(self, blueprints: list):
+        """Füllt das CARLA→Vehicle-Menü mit allen Blueprint-IDs."""
+        menu = self.refs["menu_vehicle"]
+        menu.clear()
+        for bp_id in blueprints:
+            action = QAction(bp_id, self)
+            action.triggered.connect(lambda checked, bp=bp_id: self.connector.set_vehicle_model(bp))
+            menu.addAction(action)
+
+    @pyqtSlot(str)
+    def _update_vehicle_label(self, model_id: str):
+        """Setzt das Vehicle-Label in der Connector-GroupBox."""
+        self.refs["label_vehicle"].setText(model_id)
+
+
+
+
 
 
 

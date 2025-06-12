@@ -1,7 +1,7 @@
-# utils/paths.py
+# hse/utils/paths.py
 
 from pathlib import Path
-from typing import Dict  # Statt dict[...] → Dict[...] verwenden
+from typing import Dict, Any  # Statt dict[...] → Dict[...] verwenden
 
 ROOT_DIR = Path(__file__).resolve().parents[2]  # z. B. .../Studienprojekt
 
@@ -10,8 +10,25 @@ SGG_DIR = ROOT_DIR / "carla_scene_graphs"
 DATA_DIR = ROOT_DIR / "hse" / "data"
 CONFIG_PATH = DATA_DIR / "state.json"
 
+CARLA_FPS: int = 20
 
-
+# === Kamera-Perspektiven ===
+# Schlüssel = Name, Wert = optionaler Transform (None = free-Camera)
+CAMERA_POSITIONS: Dict[str, Any] = {
+    "free": None,
+    "cockpit": {
+        "transform": {
+            "location": {"x": 0.8, "y": 0.0, "z": 1.2},
+            "rotation": {"pitch": 10.0, "yaw": 0.0, "roll": 0.0}
+        }
+    },
+    "bird": {
+        "transform": {
+            "location": {"x": -6.0, "y": 0.0, "z": 6.0},
+            "rotation": {"pitch": -30.0, "yaw": 0.0, "roll": 0.0}
+        }
+    }
+}
 
 
 # === Default-Konfiguration ===
@@ -22,6 +39,7 @@ DEFAULT_VALUES: Dict[str, object] = {
     "carla_version": "CARLA_0.9.14",  # wird beim Start ggf. gesetzt
     "model": "vehicle.tesla.model3", 
     "sgg_loaded": False,
+    "camera_selected": "free",
     
     
         "controls": {
