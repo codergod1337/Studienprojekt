@@ -1,7 +1,7 @@
 # hse/ui_builder.py 
 
 from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QLabel, QLineEdit, QCheckBox, QComboBox,
+    QWidget, QPushButton, QLabel, QLineEdit, QCheckBox, QComboBox, QFrame, QSizePolicy,
     QGroupBox, QVBoxLayout, QHBoxLayout, QToolButton, QMenuBar, QMenu, QAction, QStatusBar, QFormLayout
 )
 from PyQt5.QtCore import Qt
@@ -70,7 +70,7 @@ def build_ui(window):
 
     # === SGG GroupBox mit Layout ===
     group_sgg = QGroupBox("Scene Graph Generator", central_widget)
-    group_sgg.setGeometry(350, 50, 300, 120)
+    group_sgg.setGeometry(350, 50, 300, 150)
     layout_sgg = QFormLayout(group_sgg)
 
     label_sgg_status = QLabel("nicht geladen", group_sgg)
@@ -82,32 +82,43 @@ def build_ui(window):
     layout_sgg.addRow(checkbox_graph1)
     layout_sgg.addRow(checkbox_graph2)
 
+    # ── Trennlinie ──
+    line = QFrame(group_sgg)
+    line.setFrameShape(QFrame.HLine)
+    layout_sgg.addRow(line)
+
+    # ── Recording-Buttons ──
+    start_btn = QPushButton("Start Recording", group_sgg)
+    stop_btn  = QPushButton("Stop Recording",  group_sgg)
+    stop_btn.setEnabled(False)
+    # ── Einheitliche Button Größe ──
+    #for btn in (start_btn, stop_btn):
+    #    btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+     #   btn.setFixedHeight(30)            # Höhe so wie andere Buttons
+
+    # ── Gleiche Breite: zwei Spalten, beide expandieren ──
+    layout_sgg.addRow(start_btn, stop_btn)
+
     refs["label_sgg_status"] = label_sgg_status
     refs["checkbox_graph1"] = checkbox_graph1
     refs["checkbox_graph2"] = checkbox_graph2
+    refs["start_record_btn"]    = start_btn
+    refs["stop_record_btn"]     = stop_btn
+
 
     # === CARLA GroupBox ===
     group_carla = QGroupBox("CARLA", central_widget)
-    group_carla.setGeometry(20, 290, 300, 150)
+    group_carla.setGeometry(20, 290, 300, 120)
     layout_carla = QFormLayout(group_carla)
-
-    label_carla_status = QLabel("Stopped", group_carla)
-    label_carla_status.setStyleSheet("color: red; font-weight: bold;")
-    layout_carla.addRow("Status:", label_carla_status)
-
-    carla_process_id = QLabel("None", group_carla)
-    layout_carla.addRow("Prozess-ID:", carla_process_id)
 
     dropdown_carla_version = QComboBox(group_carla)
     layout_carla.addRow("Version:", dropdown_carla_version)
 
-    start_carla_button = QPushButton("Start CARLA", group_carla)
-    layout_carla.addRow("", start_carla_button)
+    open_folder_button = QPushButton("Open CARLA Folder", group_carla)
+    layout_carla.addRow("", open_folder_button)
 
-    refs["carla_process_id"] = carla_process_id
-    refs["carla_version"] = dropdown_carla_version
-    refs["start_carla_button"] = start_carla_button
-    refs["label_carla_status"] = label_carla_status
+    refs["carla_version"]      = dropdown_carla_version
+    refs["open_folder_button"] = open_folder_button
 
 
     # === Input ===

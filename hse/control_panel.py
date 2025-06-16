@@ -5,6 +5,7 @@ import time
 import subprocess
 import psutil
 from pathlib import Path
+import datetime
 from typing import Dict, Any
 
 from PyQt5.QtCore import QObject, QEvent, QTimer, QThread, pyqtSignal, pyqtSlot
@@ -36,13 +37,16 @@ class ControlPanel(QMainWindow):
         self.refs["spawn_button"].setEnabled(False)
         self._connected = False
 
+        # Recording-Buttons koppeln
+        self.refs["start_record_btn"].clicked.connect(self._on_start_recording)
+        self.refs["stop_record_btn"].clicked.connect(self._on_stop_recording)
+        recording = self.data.get("recording_active", False)
+        self.refs["start_record_btn"].setEnabled(not recording)
+        self.refs["stop_record_btn"].setEnabled(recording)
+
+
         # Verbindung zur Menü-Action "controls":
         self.refs["action_controls"].triggered.connect(self._open_control_manager)
-
-        # ── Timer für CARLA-Status-Check (alle 2 Sekunden)
-        self._update_timer = QTimer(self)
-        self._update_timer.timeout.connect(self.update_controls)
-        self._update_timer.start(2000)
 
         # ── Worker-Thread für Input-GroupBox (alle 0.1 s) ──
         self._input_thread = QThread(self)
@@ -173,8 +177,8 @@ class ControlPanel(QMainWindow):
         # Filter-Referenzen speichern, sonst werden sie gelöscht
         self._focus_filters = [ip_filter, port_filter]
 
-        # CARLA-Start-Button
-        self.refs["start_carla_button"].clicked.connect(self._on_start_carla_process)
+        # CARLA-Open-Button
+        self.refs["open_folder_button"].clicked.connect(self._on_open_carla_folder)
 
         # file → pull SGG
         self.refs["action_pull_sgg"].triggered.connect(self._on_pull_sgg)
@@ -262,56 +266,15 @@ class ControlPanel(QMainWindow):
         """Leite Klick an Connector weiter."""
         self.connector.spawn_vehicle()
 
-    def _on_start_carla_process(self):
-        """Startet CARLA als separaten Prozess und speichert die PID."""
+    def _on_open_carla_folder(self):
+        """Öffnet im Explorer den WindowsNoEditor-Ordner der ausgewählten Version."""
         version = self.refs["carla_version"].currentText()
-        carla_path = CARLA_DIR / version / "WindowsNoEditor" / "CarlaUE4.exe"
+        path = CARLA_DIR / version / "WindowsNoEditor"
+        if path.exists():
+            subprocess.Popen(["explorer", str(path)])
+        else:
+            QMessageBox.critical(self, "Fehler", f"Ordner nicht gefunden:\n{path}")
 
-        if not carla_path.exists():
-            QMessageBox.critical(self, "Fehler", f"Die Datei wurde nicht gefunden:\n{carla_path}")
-            return
-
-        try:
-            process = subprocess.Popen(
-                [str(carla_path)],
-                cwd=carla_path.parent,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-            pid = process.pid
-            self.refs["carla_process_id"].setText(str(pid))
-
-            proc = psutil.Process(pid)
-            self._carla_pid = proc.pid
-
-        except Exception as e:
-            print("❌ Fehler beim Starten von CARLA:", e)
-            QMessageBox.critical(self, "Startfehler", f"CARLA konnte nicht gestartet werden:\n{e}")
-            self.refs["label_carla_status"].setText("Not running")
-            self.refs["label_carla_status"].setStyleSheet("color: red; font-weight: bold;")
-            self.refs["carla_process_id"].setText("None")
-
-
-    def update_controls(self):
-        """
-        Wird alle 2 Sekunden getriggert:
-        Prüft, ob CARLA noch läuft (anhand self._carla_pid) und aktualisiert Status.
-        """
-        if self._carla_pid is not None:
-            try:
-                proc = psutil.Process(self._carla_pid)
-                if proc.is_running():
-                    self.refs["label_carla_status"].setText("🟢 Running")
-                    self.refs["label_carla_status"].setStyleSheet("color: green; font-weight: bold;")
-                else:
-                    self.refs["label_carla_status"].setText("🔴 Not running!")
-                    self.refs["label_carla_status"].setStyleSheet("color: red; font-weight: bold;")
-            except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied) as e:
-                print(f"⚠️ Prozess-Überwachung fehlgeschlagen: {e}")
-                self.refs["label_carla_status"].setText("🔴 Not running")
-                self.refs["label_carla_status"].setStyleSheet("color: red; font-weight: bold;")
-                self.refs["carla_process_id"].setText("None")
-                self._carla_pid = None
 
 
     def _on_pull_sgg(self):
@@ -365,6 +328,45 @@ class ControlPanel(QMainWindow):
     def _update_vehicle_label(self, model_id: str):
         """Setzt das Vehicle-Label in der Connector-GroupBox."""
         self.refs["label_vehicle"].setText(model_id)
+
+
+    def _on_start_recording(self):
+        """Startet eine neue Recording-Session."""
+        # Buttons updaten
+        self.refs["start_record_btn"].setEnabled(False)
+        self.refs["stop_record_btn"].setEnabled(True)
+
+        # eigentliche Record-Logik anstoßen
+        self.connector.start_recording()
+      
+
+    def _on_stop_recording(self):
+        """Beendet die Recording-Session."""
+        # Buttons updaten
+        self.refs["start_record_btn"].setEnabled(True)
+        self.refs["stop_record_btn"].setEnabled(False)
+
+        # Record-Logik beenden/Dateien schließen...
+        self.connector.stop_recording()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

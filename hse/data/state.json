@@ -3,7 +3,7 @@
     "port": 2000,
     "timeout": 15.0,
     "carla_version": "CARLA_0.9.14",
-    "model": "vehicle.bh.crossbike",
+    "model": "vehicle.toyota.prius",
     "autopilot": false,
     "sgg_enabled": false,
     "controls": {
@@ -43,5 +43,8 @@
         "1": false,
         "0": false
     },
-    "camera_selected": "bird"
+    "camera_selected": "bird",
+    "recording_active": true,
+    "last_record_date": "2025-06-16",
+    "last_record_number": 29
 }

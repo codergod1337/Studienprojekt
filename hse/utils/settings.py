@@ -6,7 +6,7 @@ from typing import Dict, Any  # Statt dict[...] → Dict[...] verwenden
 ROOT_DIR = Path(__file__).resolve().parents[2]  # z. B. .../Studienprojekt
 
 CARLA_DIR = ROOT_DIR / "CARLA"
-SGG_DIR = ROOT_DIR / "carla_scene_graphs"
+SGG_DIR = ROOT_DIR / "carla_scene_graphs" 
 DATA_DIR = ROOT_DIR / "hse" / "data"
 CONFIG_PATH = DATA_DIR / "state.json"
 
@@ -31,6 +31,9 @@ CAMERA_POSITIONS: Dict[str, Any] = {
 }
 
 
+SGG_FPS = 5.0
+
+
 # === Default-Konfiguration ===
 DEFAULT_VALUES: Dict[str, object] = {
     "host": "localhost",
@@ -39,6 +42,9 @@ DEFAULT_VALUES: Dict[str, object] = {
     "carla_version": "CARLA_0.9.14",  # wird beim Start ggf. gesetzt
     "model": "vehicle.tesla.model3", 
     "sgg_loaded": False,
+    "recording_active": False,
+    "last_record_date": "",
+    "last_record_number": 0,
     "camera_selected": "free",
     
     

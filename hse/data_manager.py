@@ -2,8 +2,9 @@
 
 import json
 from pathlib import Path
+import datetime
 from typing import Any, Dict
-from hse.utils.settings import CONFIG_PATH, DEFAULT_VALUES, CARLA_DIR
+from hse.utils.settings import CONFIG_PATH, DEFAULT_VALUES, CARLA_DIR, DATA_DIR
 
 
 class DataManager:
@@ -123,3 +124,34 @@ class DataManager:
             print("⚠️  Keine CARLA-Versionen gefunden!")
             print("💡  Bitte lade mindestens CARLA 0.9.14 herunter und entpacke es in:")
             print(f"    → {CARLA_DIR}")
+
+
+
+    def get_next_record_folder(self) -> Path:
+        """
+        Erzeugt im DATA_DIR/record/YYYY-MM-DD/ eine neue Nummer:
+         - Wenn sich das Datum geändert hat, wird counter zurückgesetzt.
+         - Gibt den Path zum neuen Ordner zurück und speichert Datum+Nummer im State.
+        """
+        today = datetime.date.today().isoformat()  # 'YYYY-MM-DD'
+        
+        # Lade aktuellen State
+        last_date = self.get("last_record_date", "")
+        last_num  = self.get("last_record_number", 0)
+
+        # Wenn neues Datum, reset counter
+        if last_date != today:
+            last_num = 0
+
+        # nächste Nummer
+        next_num = last_num + 1
+        # Pfad: DATA_DIR/record/today/record_{num}
+        base = DATA_DIR / "record" / today
+        folder = base / f"record_{next_num}"
+        folder.mkdir(parents=True, exist_ok=True)
+
+        # Im State speichern
+        self.set("last_record_date", today)
+        self.set("last_record_number", next_num)
+
+        return folder
