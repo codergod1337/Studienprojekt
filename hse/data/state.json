@@ -44,7 +44,7 @@
         "0": false
     },
     "camera_selected": "bird",
-    "recording_active": true,
-    "last_record_date": "2025-06-16",
-    "last_record_number": 29
+    "recording_active": false,
+    "last_record_date": "2025-06-17",
+    "last_record_number": 2
 }

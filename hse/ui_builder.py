@@ -77,15 +77,21 @@ def build_ui(window):
     label_sgg_status.setStyleSheet("color: red; font-weight: bold;")
     layout_sgg.addRow("Status:", label_sgg_status)
     
-    checkbox_graph1 = QCheckBox("Graph 1", group_sgg)
-    checkbox_graph2 = QCheckBox("Graph 2", group_sgg)
-    layout_sgg.addRow(checkbox_graph1)
-    layout_sgg.addRow(checkbox_graph2)
+#    checkbox_graph1 = QCheckBox("Graph 1", group_sgg)
+#    checkbox_graph2 = QCheckBox("Graph 2", group_sgg)
+#    layout_sgg.addRow(checkbox_graph1)
+#    layout_sgg.addRow(checkbox_graph2)
 
     # ── Trennlinie ──
     line = QFrame(group_sgg)
     line.setFrameShape(QFrame.HLine)
     layout_sgg.addRow(line)
+
+    # ── Frame-Counter ──
+    label_frame_caption = QLabel("Frames recorded:", group_sgg)
+    label_framecount = QLabel("0", group_sgg)
+    label_framecount.setStyleSheet("font-weight: bold;")
+    layout_sgg.addRow(label_frame_caption, label_framecount)
 
     # ── Recording-Buttons ──
     start_btn = QPushButton("Start Recording", group_sgg)
@@ -100,8 +106,9 @@ def build_ui(window):
     layout_sgg.addRow(start_btn, stop_btn)
 
     refs["label_sgg_status"] = label_sgg_status
-    refs["checkbox_graph1"] = checkbox_graph1
-    refs["checkbox_graph2"] = checkbox_graph2
+#    refs["checkbox_graph1"] = checkbox_graph1
+#    refs["checkbox_graph2"] = checkbox_graph2
+    refs["label_framecount"] = label_framecount
     refs["start_record_btn"]    = start_btn
     refs["stop_record_btn"]     = stop_btn
 

@@ -44,6 +44,9 @@ class ControlPanel(QMainWindow):
         self.refs["start_record_btn"].setEnabled(not recording)
         self.refs["stop_record_btn"].setEnabled(recording)
 
+        # Frame-Counter updaten
+        self.refs["label_framecount"].setText("0")
+        self.connector.frame_recorded.connect(self._on_frame_recorded)
 
         # Verbindung zur Menü-Action "controls":
         self.refs["action_controls"].triggered.connect(self._open_control_manager)
@@ -68,6 +71,11 @@ class ControlPanel(QMainWindow):
 
         # Spawn-Button klick → Connector.spawn_vehicle
         self.refs["spawn_button"].clicked.connect(self._on_spawn_clicked)
+
+    @pyqtSlot(int)
+    def _on_frame_recorded(self, count: int):
+        """Aktualisiert das Frame-Counter-Label."""
+        self.refs["label_framecount"].setText(str(count))
 
     def _open_control_manager(self):
         """Öffnet das Joystick-Visualisierungs-Fenster."""

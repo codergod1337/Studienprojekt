@@ -30,7 +30,7 @@ class CarlaConnector(QObject):
     blueprints_loaded = pyqtSignal(list)    # list[str] aller vehicle-Blueprint-IDs
     vehicle_model_selected = pyqtSignal(str)     # emit wenn Nutzer ein Modell wählt
     camera_position_selected = pyqtSignal(str)
-    
+    frame_recorded = pyqtSignal(int)    # emit nach jedem aufgenommenen Frame
 
 
     def __init__(self, data_manager: DataManager):
@@ -262,7 +262,12 @@ class CarlaConnector(QObject):
                 )
                 # 3) Speichern
                 self._sgg.save(sg, folder)
-                print(f"Frame {frame} aufgenommen und gespeichert.")
+                #print(f"Frame {frame} aufgenommen und gespeichert.")
+                # ➞ Signal senden:
+                try:
+                    self.frame_recorded.emit(self._sgg.timestep)
+                except Exception:
+                    pass
             except Exception as e:
                 print(f"Fehler beim Aufzeichnen von Frame {frame}: {e}")
             finally:
