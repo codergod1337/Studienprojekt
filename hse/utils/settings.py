@@ -31,7 +31,7 @@ CAMERA_POSITIONS: Dict[str, Any] = {
 }
 
 
-SGG_FPS = 5.0
+SGG_FPS = 20.0
 
 
 # === Default-Konfiguration ===

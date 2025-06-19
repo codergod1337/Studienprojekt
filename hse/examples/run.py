@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QApplication
 
 from hse.control_panel import ControlPanel
 from hse.data_manager import DataManager
-from hse.controler_manager import ControlerManager, JoystickVisualizer
+from hse.controller_manager import ControllerManager, JoystickVisualizer
 from hse.carla_connector import CarlaConnector
 
 
@@ -19,7 +19,7 @@ def main():
     app = QApplication(sys.argv)
 
     dm = DataManager()
-    cm = ControlerManager(dm)
+    cm = ControllerManager(dm)
     connector = CarlaConnector(dm)
 
     window = ControlPanel(cm, connector)

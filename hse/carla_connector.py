@@ -61,7 +61,7 @@ class CarlaConnector(QObject):
         # starte einen Worker-Loop
         self._executor.submit(self._record_worker)
 
-
+        """
         # ── 2) Setup CARLA-Python-API & agents-Package ─────────────
         version = self.data.get("carla_version")
         # a) egg-Verzeichnis (enthält carla.egg ohne agents)
@@ -79,12 +79,14 @@ class CarlaConnector(QObject):
         # Jetzt, **erst** nachdem beide Pfade gesetzt sind, carla importieren:
         import importlib
         self.carla = importlib.import_module("carla")
+        """
 
         # ── 3) Setup SGG-Paket ─────────────────────────────────────
         #    füge carla_scene_graphs ins sys.path, damit carla_sgg gefunden wird
         if SGG_DIR.exists():
             sys.path.insert(0, str(SGG_DIR))
         #    dann importiere SGG
+        import importlib
         sgg_mod = importlib.import_module("carla_sgg.sgg")
         self._SGGClass = sgg_mod.SGG
 
@@ -128,9 +130,9 @@ class CarlaConnector(QObject):
 
 
 
-    def set_controler_manager(self, cm):
-        """Euer ControlerManager-Instanz setzen, damit wir .get_current_control() aufrufen können."""
-        self._controler_manager = cm
+    def set_controller_manager(self, cm):
+        """Euer ControllerManager-Instanz setzen, damit wir .get_current_control() aufrufen können."""
+        self._controller_manager = cm
 
     def connect(self):
         """Wird aufgerufen, wenn der Benutzer den Connect-Button klickt."""
@@ -298,6 +300,25 @@ class CarlaConnector(QObject):
         Gibt False zurück, wenn Fehler aufgetreten.
         """
         try:
+
+            # Setup CARLA-Python-API & agents-Package ─────────────
+            version = self.data.get("carla_version")
+            # egg-Verzeichnis (enthält carla.egg ohne agents)
+            egg_dir = CARLA_DIR / version / "WindowsNoEditor" / "PythonAPI" / "carla" / "dist"
+            if egg_dir.exists():
+                eggs = sorted(egg_dir.glob("carla-*.egg"))
+                if eggs:
+                    sys.path.insert(0, str(eggs[-1]))
+
+            # nativer carla-Ordner, der auch agents/navigation enthält
+            carla_pkg = CARLA_DIR / version / "WindowsNoEditor" / "PythonAPI" / "carla"
+            if carla_pkg.exists():
+                sys.path.insert(0, str(carla_pkg))
+
+            # Jetzt, **erst** nachdem beide Pfade gesetzt sind, carla importieren:
+            import importlib
+            self.carla = importlib.import_module("carla")
+
             host = self.data.get("host")
             port = self.data.get("port")
             version = self.data.get("carla_version")
@@ -425,15 +446,15 @@ class CarlaConnector(QObject):
 
     def _process_control(self):
         """
-        Liest Steuerwerte vom ControlerManager und wendet sie auf das aktuell
+        Liest Steuerwerte vom ControllerManager und wendet sie auf das aktuell
         gespawnte Fahrzeug an. Keine Keyboard-Fallbacks momentan.
         """
-        # 0) Abbruch, wenn kein Fahrzeug oder kein ControlerManager vorhanden
-        if not (self._spawned_vehicles and self._controler_manager):
+        # 0) Abbruch, wenn kein Fahrzeug oder kein ControllerManager vorhanden
+        if not (self._spawned_vehicles and self._controller_manager):
             return
 
         # 1) Aktuelle Werte aus dem Mapping (Joystick, Buttons etc.)
-        current  = self._controler_manager.get_current_control()
+        current  = self._controller_manager.get_current_control()
         throttle = current.get("throttle", 0.0)
         brake    = current.get("brake",    0.0)
         steer    = current.get("steering", 0.0)

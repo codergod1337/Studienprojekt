@@ -1,4 +1,4 @@
-# hse/controler_manager.py
+# hse/controller_manager.py
 
 import sys
 import threading
@@ -25,7 +25,7 @@ from hse.utils.settings import DEFAULT_VALUES
 
 
 
-class ControlerManager(QObject):
+class ControllerManager(QObject):
     """
     Kern-Loop für Joystick-Eingaben in einem eigenen Thread:
     - Liest kontinuierlich alle Achsen- und Button-Zustände.
@@ -62,9 +62,9 @@ class ControlerManager(QObject):
                 self.raw_axes[i] = 0.0
             for j in range(js.get_numbuttons()):
                 self.raw_buttons[j] = False
-            print(f"✅ Joystick gefunden: {js.get_name()}")
+            print(f"Gerät gefunden: {js.get_name()}")
         else:
-            print("⚠️ Kein Joystick gefunden – der Hintergrund-Thread läuft trotzdem.")
+            print("Kein Joystick gefunden – der Hintergrund-Thread läuft trotzdem.")
 
         self._lock = threading.Lock()
         self._running = True
@@ -104,7 +104,7 @@ class ControlerManager(QObject):
                     else:
                         self.last_values[func] = None
 
-            time.sleep(0.033)
+            time.sleep(0.033)   # ~30Hz
 
     def get_all_states(self) -> Dict[str, Dict[Any, Any]]:
         """
@@ -143,6 +143,17 @@ class ControlerManager(QObject):
             self.invert_cfg[axis_idx] = invert_flag
             self.data.set("invert_axes", self.invert_cfg)
 
+    def set_device(self, index: int):
+        with self._lock:
+            if self.joystick:
+                self.joystick.quit()
+            js = pygame.joystick.Joystick(index)
+            js.init()
+            self.joystick = js
+            # reset raw_axes/raw_buttons für neue Counts
+            self.raw_axes = {i: 0.0 for i in range(js.get_numaxes())}
+            self.raw_buttons = {j: False for j in range(js.get_numbuttons())}
+
     def shutdown(self):
         self._running = False
         self._thread.join(timeout=0.5)
@@ -161,16 +172,16 @@ class ControlerManager(QObject):
 
 class JoystickVisualizer(QWidget):
     """
-    GUI, die die Daten aus einem vorhandenen ControlerManager verwendet:
+    GUI, die die Daten aus einem vorhandenen ControllerManager verwendet:
     - Liest Achsen- und Button-Werte via cm.get_current_control()
     - Erkennt Keybinding („Set“), indem es direkt auf cm.joystick zugreift
     - Inversionen über cm.set_invert() speichern
     - Highlight und Farbcodierung analog zu den Funktionen
     """
 
-    def __init__(self, controler_manager):
+    def __init__(self, controller_manager):
         super().__init__()
-        self.cm = controler_manager
+        self.cm = controller_manager
         # DataManager und Mapping/Inversion übernehmen
         self.data_manager = self.cm.data
         self.controls_cfg = self.cm.controls_cfg
@@ -271,10 +282,13 @@ class JoystickVisualizer(QWidget):
 
         # Joystick-Index für CM setzen (optional)
         if pygame.joystick.get_count() > index:
-            js = pygame.joystick.Joystick(index)
-            js.init()
-            # CM verwendet diesen Joystick
-            self.cm.joystick = js
+            # Sage dem ControllerManager, er soll auf Gerät `index` umschalten
+            self.cm.set_device(index)
+
+            #js = pygame.joystick.Joystick(index)
+            #js.init()
+            ## CM verwendet diesen Joystick
+            #self.cm.joystick = js
 
         self._build_ui_for_joystick(index)
         self.adjustSize()
@@ -425,7 +439,7 @@ class JoystickVisualizer(QWidget):
             # Wenn weiterhin im Set-Modus, brechen wir ohne Update ab
             return
 
-        # ‣ Normale Anzeige (Rohdaten aus ControlerManager)
+        # ‣ Normale Anzeige (Rohdaten aus ControllerManager)
         all_states = self.cm.get_all_states()
         axes_states = all_states["axes"]
         buttons_states = all_states["buttons"]
@@ -511,7 +525,7 @@ class JoystickVisualizer(QWidget):
 
     def closeEvent(self, event):
         """
-        Nur die Visualisierung schließen, ControlerManager bleibt aktiv.
+        Nur die Visualisierung schließen, ControllerManager bleibt aktiv.
         Daher rufen wir hier nicht pygame.quit() auf, sondern nur das Fenster schließen.
         """
         self._timer.stop()
@@ -521,12 +535,12 @@ class JoystickVisualizer(QWidget):
 if __name__ == "__main__":
     """
     Startet beim Direktaufruf:
-    1. Den ControlerManager (im Hintergrund-Thread).
+    1. Den ControllerManager (im Hintergrund-Thread).
     2. Die JoystickVisualizer-GUI, die live die Werte anzeigt und Keybindings erlaubt.
     """
     app = QApplication(sys.argv)
     dm = DataManager()
-    cm = ControlerManager(dm)
+    cm = ControllerManager(dm)
     visualizer = JoystickVisualizer(cm)
     sys.exit(app.exec_())
 
@@ -570,49 +584,3 @@ if __name__ == "__main__":
 
 
 
-
-class ControlerManager1:
-    """Platzhalter-Klasse für spätere CarlaConnector-Integration (TBD)."""
-
-    def __init__(self, data_manager: Any):
-        self.data = data_manager
-        pygame.init()
-        pygame.joystick.init()
-        self.joystick = None
-        if pygame.joystick.get_count() > 0:
-            self.joystick = pygame.joystick.Joystick(0)
-            self.joystick.init()
-            print(f"✅ Joystick gefunden: {self.joystick.get_name()}")
-        else:
-            print("⚠️ Kein Joystick gefunden – Tastaturmodus aktiviert.")
-        controls_cfg: Dict[str, Any] = self.data.get("controls", {})
-        self.axis_steer     = controls_cfg.get("steer_axis", 0)
-        self.axis_throttle  = controls_cfg.get("throttle_axis", 1)
-        self.axis_brake     = controls_cfg.get("brake_axis", 2)
-        self.btn_reverse    = controls_cfg.get("reverse_button", 0)
-        self.btn_respawn    = controls_cfg.get("respawn_button", 1)
-        self.btn_cam_switch = controls_cfg.get("cam_switch_button", 2)
-        self.btn_record     = controls_cfg.get("record_button", 3)
-        self.dead_zone = 0.05
-        self._timer = QTimer()
-        self._timer.timeout.connect(self.tick)
-        self._timer.start(33)
-
-    def tick(self):
-        """Hier später Steuerlogik an Connector."""
-        pygame.event.pump()
-        # Implementierung folgt je nach Connector-Aufbau
-
-    def apply_dead_zone(self, value: float) -> float:
-        return 0.0 if abs(value) < self.dead_zone else value
-
-    def shutdown(self):
-        if self.joystick:
-            self.joystick.quit()
-        pygame.quit()
-
-
-#if __name__ == "__main__":
-#    app = QApplication(sys.argv)
-#    window = JoystickVisualizer()
-#    sys.exit(app.exec_())

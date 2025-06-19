@@ -14,19 +14,19 @@ from PyQt5.QtWidgets import QMainWindow, QComboBox, QMessageBox, QAction
 from hse.ui_builder import build_ui
 from hse.data_manager import DataManager
 from hse.utils.settings import CARLA_DIR, SGG_DIR, DEFAULT_VALUES
-from hse.controler_manager import JoystickVisualizer, ControlerManager
+from hse.controller_manager import JoystickVisualizer, ControllerManager
 from hse.carla_connector import CarlaConnector
 from hse.utils.settings import CAMERA_POSITIONS
 
 
 class ControlPanel(QMainWindow):
-    def __init__(self, controler_manager: ControlerManager, connector: CarlaConnector):
+    def __init__(self, controller_manager: ControllerManager, connector: CarlaConnector):
         super().__init__()
         self.data = DataManager()                   # ← DataManager laden
-        self.cm = controler_manager                 # ← ControlerManager von außen übernehmen
+        self.cm = controller_manager                 # ← ControllerManager von außen übernehmen
         self.connector = connector                  # ← CarlaConnector von außen übernehmen
         
-        self.connector.set_controler_manager(self.cm) # ControlerManager an den Connector übergeben, damit er .get_current_control() nutzt
+        self.connector.set_controller_manager(self.cm) # ControllerManager an den Connector übergeben, damit er .get_current_control() nutzt
 
         self.refs = build_ui(self)
         self._init_values_from_data()               # ← Werte aus JSON setzen
@@ -389,9 +389,9 @@ class InputWorker(QObject):
     emit: (current_controls: dict, device_name: str)
     """
 
-    def __init__(self, controler_manager):
+    def __init__(self, controller_manager):
         super().__init__()
-        self.cm = controler_manager
+        self.cm = controller_manager
         self._running = True
 
     @pyqtSlot()
