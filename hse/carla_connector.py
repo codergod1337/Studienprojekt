@@ -453,8 +453,9 @@ class CarlaConnector(QObject):
         if not (self._spawned_vehicles and self._controller_manager):
             return
 
+        # TODO: PFUSCH HIER
         # 1) Aktuelle Werte aus dem Mapping (Joystick, Buttons etc.)
-        current  = self._controller_manager.get_current_control()
+        current  = self._controller_manager.get_mapped_controls()
         throttle = current.get("throttle", 0.0)
         brake    = current.get("brake",    0.0)
         steer    = current.get("steering", 0.0)

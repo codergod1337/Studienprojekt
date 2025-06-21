@@ -4,11 +4,11 @@
     "timeout": 15.0,
     "carla_version": "CARLA_0.9.14",
     "model": "vehicle.tesla.model3",
-    "sgg_loaded": false,
+    "sgg_loaded": true,
     "recording_active": false,
-    "last_record_date": "",
-    "last_record_number": 0,
-    "camera_selected": "free",
+    "last_record_date": "2025-06-21",
+    "last_record_number": 3,
+    "camera_selected": "bird",
     "controls": {
         "throttle": {
             "type": "axis",

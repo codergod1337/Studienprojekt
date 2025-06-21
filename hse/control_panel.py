@@ -7,6 +7,7 @@ import psutil
 from pathlib import Path
 import datetime
 from typing import Dict, Any
+import platform
 
 from PyQt5.QtCore import QObject, QEvent, QTimer, QThread, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QMessageBox, QAction
@@ -23,37 +24,44 @@ from hse.utils.settings import CAMERA_POSITIONS
 class ControlPanel(QMainWindow):
     def __init__(self, controller_manager: ControllerManager, connector: CarlaConnector):
         super().__init__()
-        self.data = DataManager()                   # ← DataManager laden
-        self.cm = controller_manager                 # ← ControllerManager von außen übernehmen
-        self.connector = connector                  # ← CarlaConnector von außen übernehmen
+        # Initialize the data manager for storing configuration = state of application
+        self.data = DataManager()
+        # Keep a reference to the external controller manager                   
+        self.cm = controller_manager  
+        # Keep a reference to the external Carla connector               
+        self.connector = connector                  
         
-        self.connector.set_controller_manager(self.cm) # ControllerManager an den Connector übergeben, damit er .get_current_control() nutzt
+        # Inform the connector about which controller manager to use
+        self.connector.set_controller_manager(self.cm) 
+        # Create a separate window for visualizing joystick input
         self._control_win = JoystickVisualizer(self.cm)
 
+        # Build the UI components and store references
         self.refs = build_ui(self)
-        self._init_values_from_data()               # ← Werte aus JSON setzen
+        self._init_values_from_data()
+        # Set up signal-slot connections for UI interactions              
         self._init_connections()
-        self._carla_pid = None                      # Merke PID lokal
+        
 
-        # Spawn-Button deaktiviert, bis connect + Modell
+        # Disable the spawn button until a successful connection and model selection
         self.refs["spawn_button"].setEnabled(False)
         self._connected = False
 
-        # Recording-Buttons koppeln
+        # Link recording buttons to their handlers
         self.refs["start_record_btn"].clicked.connect(self._on_start_recording)
         self.refs["stop_record_btn"].clicked.connect(self._on_stop_recording)
         recording = self.data.get("recording_active", False)
         self.refs["start_record_btn"].setEnabled(not recording)
         self.refs["stop_record_btn"].setEnabled(recording)
 
-        # Frame-Counter updaten
+        # Initialize frame counter display and connect to connector's signal
         self.refs["label_framecount"].setText("0")
         self.connector.frame_recorded.connect(self._on_frame_recorded)
 
-        # Verbindung zur Menü-Action "controls":
+        # Connect the "controls" menu action to opening the joystick-visualizer-window
         self.refs["action_controls"].triggered.connect(self._open_control_manager)
 
-        # ── Worker-Thread für Input-GroupBox (alle 0.1 s) ──
+        # Start a background thread that polls joystick input every 0.1 seconds
         self._input_thread = QThread(self)
         self._input_worker = InputWorker(self.cm)
         self._input_worker.moveToThread(self._input_thread)
@@ -61,26 +69,26 @@ class ControlPanel(QMainWindow):
         self._input_worker.update_signal.connect(self._update_input_fields)
         self._input_thread.start()
 
-        # Camera Positionen laden
+        # Populate camera selection menu with data from settings
         self._populate_camera_menu()
 
 
-        # Connector-Signal abonnieren (für nach carla connect)
+        # Subscribe to connector events for connection results, blueprint loading etc...
         self.connector.connection_result.connect(self._on_connector_result)
         self.connector.blueprints_loaded.connect(self._populate_vehicle_menu)
         self.connector.vehicle_model_selected.connect(self._update_vehicle_label)
         self.connector.camera_position_selected.connect(self._update_camera_label)
 
-        # Spawn-Button klick → Connector.spawn_vehicle
+        # Link the spawn button to the connector's spawn_vehicle method
         self.refs["spawn_button"].clicked.connect(self._on_spawn_clicked)
 
     @pyqtSlot(int)
     def _on_frame_recorded(self, count: int):
-        """Aktualisiert das Frame-Counter-Label."""
+        """Update the label showing how many frames have been recorded"""
         self.refs["label_framecount"].setText(str(count))
 
     def _open_control_manager(self):
-        """Öffnet das Joystick-Visualisierungs-Fenster."""
+        """Bring the existing joystick window to front, or create and show it"""
         if hasattr(self, "_control_win") and self._control_win.isVisible():
             self._control_win.raise_()
             self._control_win.activateWindow()
@@ -89,45 +97,39 @@ class ControlPanel(QMainWindow):
             self._control_win.show()
 
     def _populate_camera_menu(self):
-        """Füllt CARLA→Camera mit den in settings definierten Perspektiven."""
+        """Clear existing camera menu and add actions for each predefined camera position"""
         menu = self.refs["menu_camera"]
         menu.clear()
         for cam in CAMERA_POSITIONS.keys():
             act = QAction(cam, self)
+            # When selected, instruct the connector to switch camera
             act.triggered.connect(lambda _, c=cam: self.connector.set_camera_position(c))
             menu.addAction(act)
 
 
     @pyqtSlot(str)
     def _update_camera_label(self, cam_id: str):
-        """Aktualisiert das Label in der Connector-GroupBox."""
+        """Reflect the selected camera position in the UI label"""
         self.refs["label_camera"].setText(cam_id)
 
 
     def closeEvent(self, event):
-        """Beim Schließen Worker ordentlich stoppen und Thread beenden."""
+        """Stop the input polling worker and clean up the thread on window close"""
         self._input_worker.stop()
         self._input_thread.quit()
         self._input_thread.wait()
         super().closeEvent(event)
 
 
-        """
-        Zusätzlich hatte der Slot‐Decorator @pyqtSlot(Dict, str) provoziert, dass PyQt in 3.7 
-        die Typen nicht akzeptiert. Man darf im @pyqtSlot nur dict (das eingebaute Python‐dict) 
-        verwenden, nicht Dict aus typing. Erst die Methodensignatur kann intern als current: 
-        Dict[str, Any] stehen, aber der Decorator muss @pyqtSlot(dict, str) lauten.
-        """
     @pyqtSlot(dict, str)
     def _update_input_fields(self, current: Dict[str, Any], device_name: str):
         """
-        Slot, der vom Worker-Thread alle 0.1 s aufgerufen wird.
-        Schreibt Joystick‐Name und jeden Control‐Wert in die Input‐GroupBox.
+        Display the name of the current joystick device
         """
         # 1. Joystick‐Name
         self.refs["input_device"].setText(device_name)
 
-        # 2. Werte pro Feature aus DEFAULT_VALUES["controls"]
+        # Update each control value label with formatted text and color
         for func in DEFAULT_VALUES["controls"]:
             lbl = self.refs.get(f"input_{func}")
             if not lbl:
@@ -147,27 +149,26 @@ class ControlPanel(QMainWindow):
 
 
     def _init_values_from_data(self):
-        """Lese aus DataManager und fülle UI-Felder bei Start."""
-        # IP / Port
+        # Load saved host (IP) and port from DataManager and populate the text fields.
         self.refs["input_ip"].setText(self.data.get("host"))
         self.refs["input_port"].setText(str(self.data.get("port")))
 
-        # CARLA-Version Dropdown befüllen
+        # Fill the CARLA version dropdown with all available versions.
         dropdown: QComboBox = self.refs["carla_version"]
         dropdown.clear()
         dropdown.addItems(self.data.carla_versions)
 
-        # Gespeicherte Version vorauswählen
+        # Pre-select the saved CARLA version if it exists in the list.
         saved_version = self.data.get("carla_version")
         if saved_version in self.data.carla_versions:
             index = dropdown.findText(saved_version)
             if index != -1:
                 dropdown.setCurrentIndex(index)
 
-        # Änderung speichern, wenn Auswahl geändert wird
+        # Whenever the user picks a different version, save it back to DataManager.
         dropdown.currentTextChanged.connect(lambda v: self.data.set("carla_version", v))
 
-        # SGG-Status
+        # Show whether the Scene Graph Generator (SGG) is loaded/ pulled or missing.
         loaded = self.data.get("sgg_loaded")
         if loaded:
             self.refs["label_sgg_status"].setText("🟢 SGG ready")
@@ -178,71 +179,76 @@ class ControlPanel(QMainWindow):
 
 
     def _init_connections(self):
-        """Registriere Event-Filter und Button-/Action-Handler."""
-        # Event-Filter für IP- und Port-Feld
+        # Install event filters on the IP and port QLineEdits to detect focus loss.
         ip_filter = FocusEventFilter(self._save_field_on_focus_lost)
         port_filter = FocusEventFilter(self._save_field_on_focus_lost)
         self.refs["input_ip"].installEventFilter(ip_filter)
         self.refs["input_port"].installEventFilter(port_filter)
-        # Filter-Referenzen speichern, sonst werden sie gelöscht
+
+        # Keep references to the filters so they aren’t garbage-collected.
         self._focus_filters = [ip_filter, port_filter]
 
-        # CARLA-Open-Button
+        # Connect the "Open Folder" button to its handler.
         self.refs["open_folder_button"].clicked.connect(self._on_open_carla_folder)
 
-        # file → pull SGG
+        # Connect the "Pull SGG" action in the menu to its handler.
         self.refs["action_pull_sgg"].triggered.connect(self._on_pull_sgg)
 
-        #  Connect-Button im Connector-GroupBox
+        # Connect the "Connect" button in the connector group to its handler.
         self.refs["toolButton"].clicked.connect(self._on_connect)
 
 
 
     def _save_field_on_focus_lost(self, field):
-        """Callback, wenn IP- oder Port-Feld den Fokus verliert: speichere neuen Wert."""
+        """
+        Triggered when the IP or port field loses focus.
+        If it's the IP field, save the new host string.
+        """
         if field == self.refs["input_ip"]:
             new_ip = field.text()
             self.data.set("host", new_ip)
-            print(f"💾 Neue IP gespeichert: {new_ip}")
+            print(f"💾 New host saved: {new_ip}")
+        # If it's the port field, try converting to int and save; ignore invalid entries.    
         elif field == self.refs["input_port"]:
             try:
                 port = int(field.text())
                 self.data.set("port", port)
-                print(f"💾 Neuer Port gespeichert: {port}")
+                print(f"💾 New port saved: {port}")
             except ValueError:
-                print("⚠️ Ungültiger Portwert – nicht gespeichert.")
+                print("⚠️ Invalid port value – not saved.")
 
 
     def _on_connect(self):
         """
-        Wird ausgelöst, wenn der Benutzer im Connector-Bereich auf „Connect“ klickt.
-        Löst connector.connect() aus.
+        Called when the user clicks "Connect".
+        Immediately update the status label to show “connecting…”.
         """
-        # UI Status sofort auf „Connecting…“
         self.refs["label_status"].setText("🔄 Connecting...")
         self.refs["label_status"].setStyleSheet("color: orange; font-weight: bold;")
 
-        # Connector löst Hintergrund-Verbindung aus
+        # Delegate the actual connection logic to the connector.
         self.connector.connect()
 
     @pyqtSlot(bool, str)
     def _on_connector_result(self, success: bool, message: str):
         """
-        Reagiert auf das Signal aus CarlaConnector.connection_result.
-        Setzt Status-Label grün oder rot.
+        Slot that receives the outcome of connector.connect()
         """
         if success:
+            # Mark as connected and update UI to green “Connected”.
             self._connected = True
             self.refs["label_status"].setText("🟢 Connected")
             self.refs["label_status"].setStyleSheet("color: green; font-weight: bold;")
-            # CARLA-Version im UI anzeigen
+
+            # Display the CARLA version in the UI.
             version = self.data.get("carla_version")
             self.refs["label_version"].setText(version)
-            # sobald verbunden, initial Camera-Label (falls der Connector das Signal noch nicht geschickt hat):
+
+            # Ensure the camera label is initialized (in case connector didn't emit it yet).
             cam = self.data.get("camera_selected", "free")
             self.refs["label_camera"].setText(cam)
             
-            # Spawn-Button aktivieren, wenn schon ein Modell gewählt
+            # Enable the spawn button if a vehicle model is already selected.
             if self.data.get("model"):
                 self.refs["spawn_button"].setEnabled(True)            
         else:
@@ -252,47 +258,60 @@ class ControlPanel(QMainWindow):
 
 
 
-    # CARLA BOX
-    @staticmethod
-    def process_exists(pid_str: str) -> bool:
-        """Prüft, ob ein Prozess mit gegebener PID noch läuft."""
-        try:
-            pid = int(pid_str)
-            p = psutil.Process(pid)
-            return p.is_running()
-        except (ValueError, psutil.NoSuchProcess):
-            return False
-
     @pyqtSlot(str)
     def _on_model_selected(self, model_id: str):
-        """Wenn der Connector meldet, dass ein Modell gewählt wurde."""
-        # Label updaten (bereits in _update_vehicle_label) …
-        # Spawn-Button nur aktiv, wenn wir verbunden sind
+        """
+        When the Connector notifies that a vehicle model was chosen,
+        enable the spawn button if we are already connected.
+        """
         if self._connected:
             self.refs["spawn_button"].setEnabled(True)
 
+
     @pyqtSlot()
     def _on_spawn_clicked(self):
-        """Leite Klick an Connector weiter."""
+        """Forward the spawn action to the connector when the user clicks Spawn."""
         self.connector.spawn_vehicle()
 
+
     def _on_open_carla_folder(self):
-        """Öffnet im Explorer den WindowsNoEditor-Ordner der ausgewählten Version."""
+        """Open the WindowsNoEditor folder for the selected CARLA version."""
         version = self.refs["carla_version"].currentText()
         path = CARLA_DIR / version / "WindowsNoEditor"
         if path.exists():
-            subprocess.Popen(["explorer", str(path)])
+            try:
+                # Delegate the actual “open” operation to our helper method below
+                print(path)
+                self.open_folder(path)
+            except Exception as e:
+                QMessageBox.critical(self, "Error opening folder", str(e))
         else:
             QMessageBox.critical(self, "Fehler", f"Ordner nicht gefunden:\n{path}")
 
+    def open_folder(self, path: Path):
+        """
+        Open a folder in the native file browser, depending on the current platform.
+        Supports Windows, macOS (Darwin) and Linux.
+        """
+        system = platform.system()
+        print(system)
+        if system == "Windows":
+            # On Windows use Explorer
+            subprocess.Popen(["explorer", str(path)])
+        elif system == "Darwin":
+            # On macOS use open
+            subprocess.Popen(["open", str(path)])
+        else:
+            # Fallback for most Linux distributions
+            subprocess.Popen(["xdg-open", str(path)])
 
 
     def _on_pull_sgg(self):
-        """Klont oder updated das SGG‐Repository und setzt den Status."""
+        """Clone or update the Carla Scene Graph repository."""
         GIT_URL = "https://github.com/less-lab-uva/carla_scene_graphs.git"
         try:
             if not SGG_DIR.exists():
-                print("📦 Klone SGG-Repository...")
+                print("📦 Cloning SGG repository...")
                 result = subprocess.run(
                     ["git", "clone", GIT_URL],
                     cwd=CARLA_DIR.parent,
@@ -303,7 +322,7 @@ class ControlPanel(QMainWindow):
                 if result.returncode != 0:
                     raise RuntimeError(result.stderr)
             else:
-                print("🔄 Aktualisiere SGG-Repository (Pull)...")
+                print("🔄 Pulling latest SGG changes...")
                 result = subprocess.run(
                     ["git", "pull"],
                     cwd=SGG_DIR,
@@ -313,50 +332,53 @@ class ControlPanel(QMainWindow):
                 )
                 if result.returncode != 0:
                     raise RuntimeError(result.stderr)
-
-            print("✅ SGG erfolgreich geladen.")
+            
+            # Upon success, mark SGG as loaded and update the status label.
+            print("✅ SGG loaded successfully.")
             self.data.set("sgg_loaded", True)
             self.refs["label_sgg_status"].setText("🟢 SGG ready")
             self.refs["label_sgg_status"].setStyleSheet("color: green; font-weight: bold;")
         except Exception as e:
-            print("❌ Fehler beim Laden von SGG:", e)
-            self.refs["label_sgg_status"].setText("🔴 Fehler beim Laden")
+            print("❌ Error loading SGG:", e)
+            self.refs["label_sgg_status"].setText("🔴 Load error")
             self.refs["label_sgg_status"].setStyleSheet("color: red; font-weight: bold;")
             self.data.set("sgg_loaded", False)
 
 
     def _populate_vehicle_menu(self, blueprints: list):
-        """Füllt das CARLA→Vehicle-Menü mit allen Blueprint-IDs."""
+        """Fill the "Vehicle" submenu with QAction items for each blueprint ID."""
         menu = self.refs["menu_vehicle"]
         menu.clear()
         for bp_id in blueprints:
             action = QAction(bp_id, self)
+            # When selected, instruct the connector to use this vehicle model.
             action.triggered.connect(lambda checked, bp=bp_id: self.connector.set_vehicle_model(bp))
             menu.addAction(action)
 
+
     @pyqtSlot(str)
     def _update_vehicle_label(self, model_id: str):
-        """Setzt das Vehicle-Label in der Connector-GroupBox."""
+        """Update the label showing which vehicle model is currently selected."""
         self.refs["label_vehicle"].setText(model_id)
 
 
     def _on_start_recording(self):
-        """Startet eine neue Recording-Session."""
-        # Buttons updaten
+        """Disable the "Start" button, enable the "Stop" button, and start recording via the connector."""
+        # Buttons update
         self.refs["start_record_btn"].setEnabled(False)
         self.refs["stop_record_btn"].setEnabled(True)
 
-        # eigentliche Record-Logik anstoßen
+        # Record-Logic start
         self.connector.start_recording()
       
 
     def _on_stop_recording(self):
-        """Beendet die Recording-Session."""
+        """Re-enable the "Start" button, disable the "Stop" button, and stop recording via the connector."""
         # Buttons updaten
         self.refs["start_record_btn"].setEnabled(True)
         self.refs["stop_record_btn"].setEnabled(False)
 
-        # Record-Logik beenden/Dateien schließen...
+        # Record-Logik terminate...
         self.connector.stop_recording()
 
 
@@ -369,26 +391,11 @@ class ControlPanel(QMainWindow):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ── Worker, der alle 0.1 s die aktuellen Werte sammelt und signalisiert ──
+# Worker that polls the controller every 0.1s and emits a signal
 class InputWorker(QObject):
     update_signal = pyqtSignal(dict, str)
     """
-    emit: (current_controls: dict, device_name: str)
+    # Emits a tuple: (current_controls: dict, device_name: str)
     """
 
     def __init__(self, controller_manager):
@@ -396,27 +403,36 @@ class InputWorker(QObject):
         self.cm = controller_manager
         self._running = True
 
+
     @pyqtSlot()
     def run(self):
+        # Main loop: while running, fetch mapped controls and emit them
         while self._running:
             current = self.cm.get_mapped_controls()
             js = self.cm.current_joystick
             device_name = js.get_name() if js else "–"
+            # Emit the current control states and joystick name to the UI.
             self.update_signal.emit(current, device_name)
             time.sleep(0.1)
 
+
     def stop(self):
+        # Signal the loop to exit cleanly.
         self._running = False
 
 
 
-# Event Filter, der beim Unselect eines QLineEdit greift
+# Event filter to detect when a QLineEdit loses focus.
 class FocusEventFilter(QObject):
     def __init__(self, on_focus_lost_callback):
         super().__init__()
+        # Store the callback to invoke on focus loss.
         self.on_focus_lost_callback = on_focus_lost_callback
 
+
     def eventFilter(self, obj, event):
+        # If the event is a focus-out, call the provided callback.
         if event.type() == QEvent.FocusOut:
             self.on_focus_lost_callback(obj)
-        return False  # Event weiterreichen
+        # Return False to allow normal event propagation.
+        return False  
