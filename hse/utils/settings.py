@@ -46,6 +46,7 @@ DEFAULT_VALUES: Dict[str, object] = {
     "last_record_date": "",
     "last_record_number": 0,
     "camera_selected": "free",
+    "active_controller":None,
     
     
         "controls": {
@@ -56,5 +57,6 @@ DEFAULT_VALUES: Dict[str, object] = {
         "respawn":    {"type": None, "id": None, "color": "#911eb4"},
         "cam_switch": {"type": None, "id": None, "color": "#42d4f4"},
         "record":     {"type": None, "id": None, "color": "#f032e6"},
-    }
+    },
+    "known_devices": {}
 }

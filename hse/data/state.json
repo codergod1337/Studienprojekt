@@ -3,9 +3,12 @@
     "port": 2000,
     "timeout": 15.0,
     "carla_version": "CARLA_0.9.14",
-    "model": "vehicle.toyota.prius",
-    "autopilot": false,
-    "sgg_enabled": false,
+    "model": "vehicle.tesla.model3",
+    "sgg_loaded": false,
+    "recording_active": false,
+    "last_record_date": "",
+    "last_record_number": 0,
+    "camera_selected": "free",
     "controls": {
         "throttle": {
             "type": "axis",
@@ -13,38 +16,72 @@
         },
         "brake": {
             "type": "button",
-            "id": 12
-        },
-        "reverse": {
-            "type": "button",
-            "id": 7
-        },
-        "respawn": {
-            "type": "button",
-            "id": 0
-        },
-        "cam_switch": {
-            "type": "button",
-            "id": 2
-        },
-        "record": {
-            "type": "button",
             "id": 3
         },
         "steering": {
             "type": "axis",
             "id": 0
+        },
+        "reverse": {
+            "type": "button",
+            "id": 13
+        },
+        "respawn": {
+            "type": "button",
+            "id": 14
+        },
+        "cam_switch": {
+            "type": "button",
+            "id": 1
+        },
+        "record": {
+            "type": "button",
+            "id": 0
         }
     },
-    "sgg_loaded": true,
-    "invert_axes": {
-        "3": true,
-        "2": false,
-        "1": false,
-        "0": false
+    "known_devices": {
+        "T.16000M": {
+            "axes": [
+                {
+                    "id": 0,
+                    "style": "bipolar",
+                    "inverted": false
+                },
+                {
+                    "id": 1,
+                    "style": "bipolar",
+                    "inverted": true
+                },
+                {
+                    "id": 2,
+                    "style": "bipolar",
+                    "inverted": false
+                },
+                {
+                    "id": 3,
+                    "style": "unipolar",
+                    "inverted": true
+                }
+            ],
+            "buttons": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+            ]
+        }
     },
-    "camera_selected": "bird",
-    "recording_active": false,
-    "last_record_date": "2025-06-18",
-    "last_record_number": 2
+    "active_controller": "T.16000M"
 }

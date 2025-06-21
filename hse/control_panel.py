@@ -14,7 +14,8 @@ from PyQt5.QtWidgets import QMainWindow, QComboBox, QMessageBox, QAction
 from hse.ui_builder import build_ui
 from hse.data_manager import DataManager
 from hse.utils.settings import CARLA_DIR, SGG_DIR, DEFAULT_VALUES
-from hse.controller_manager import JoystickVisualizer, ControllerManager
+from hse.controller_manager import ControllerManager
+from hse.utils.joystick_visualizer import JoystickVisualizer
 from hse.carla_connector import CarlaConnector
 from hse.utils.settings import CAMERA_POSITIONS
 
@@ -27,6 +28,7 @@ class ControlPanel(QMainWindow):
         self.connector = connector                  # ← CarlaConnector von außen übernehmen
         
         self.connector.set_controller_manager(self.cm) # ControllerManager an den Connector übergeben, damit er .get_current_control() nutzt
+        self._control_win = JoystickVisualizer(self.cm)
 
         self.refs = build_ui(self)
         self._init_values_from_data()               # ← Werte aus JSON setzen
@@ -397,8 +399,8 @@ class InputWorker(QObject):
     @pyqtSlot()
     def run(self):
         while self._running:
-            current = self.cm.get_current_control()
-            js = self.cm.joystick
+            current = self.cm.get_mapped_controls()
+            js = self.cm.current_joystick
             device_name = js.get_name() if js else "–"
             self.update_signal.emit(current, device_name)
             time.sleep(0.1)

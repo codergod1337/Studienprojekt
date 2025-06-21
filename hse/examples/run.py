@@ -11,7 +11,8 @@ from PyQt5.QtWidgets import QApplication
 
 from hse.control_panel import ControlPanel
 from hse.data_manager import DataManager
-from hse.controller_manager import ControllerManager, JoystickVisualizer
+from hse.controller_manager import ControllerManager
+from hse.utils.joystick_visualizer import JoystickVisualizer
 from hse.carla_connector import CarlaConnector
 
 
