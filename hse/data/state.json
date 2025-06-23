@@ -6,7 +6,7 @@
     "model": "vehicle.tesla.model3",
     "sgg_loaded": true,
     "last_record_date": "2025-06-23",
-    "last_record_number": 26,
+    "last_record_number": 31,
     "camera_selected": "bird",
     "controls": {
         "throttle": {

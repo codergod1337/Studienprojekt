@@ -39,6 +39,16 @@ class ControllerManager(QObject):
         # Right now connected:
         device_count = pygame.joystick.get_count()
 
+        # Hardware Check, no reason to start if there is no connected Controller
+        if device_count == 0:
+            from PyQt5.QtWidgets import QMessageBox, QApplication
+            # Fehlermeldung anzeigen
+            QMessageBox.critical(None, "ERROR", "No Controller Device found!\nShutdown App...")
+            # Qt-Event-Loop terminate
+            QApplication.quit()
+            # Python exit
+            import sys; sys.exit(1)        
+
         for current_joystick_index in range(device_count):
             current_joystick = pygame.joystick.Joystick(current_joystick_index)
             current_joystick.init()

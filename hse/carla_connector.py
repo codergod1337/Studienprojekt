@@ -1,9 +1,11 @@
 # hse/carla_connector.py
 
+from __future__ import annotations
+
 import threading
 import time
 import sys
-import carla
+#import carla
 import queue
 import pygame
 from timeit import default_timer as timer
@@ -11,13 +13,15 @@ from timeit import default_timer as timer
 from concurrent.futures import ThreadPoolExecutor
 from collections import Counter
 
-from typing import Optional, Any
+from typing import Optional, Any, TYPE_CHECKING
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from hse.data_manager import DataManager
 from hse.utils.settings import CAMERA_POSITIONS, CARLA_DIR, CARLA_FPS, SGG_DIR, SGG_FPS, SGG_RENDER_DIST, QUEUE_WORKER_COUNT
 
 
+if TYPE_CHECKING:
+    import carla    # nur für die Typprüfung
 
 
 
@@ -85,7 +89,7 @@ class CarlaConnector(QObject):
         # Start the recording worker in the pool
         self._executor.submit(self._record_worker)
 
-
+        """
         # Prepare the SGG package import 
         # If the SGG repo folder exists, insert it into sys.path so we can import it.
         if SGG_DIR.exists():
@@ -112,6 +116,7 @@ class CarlaConnector(QObject):
         self._abstract_semgraph  = EL
         self._abstract_er        = ER
         self._ego_not_in_lane_ex = EgoNotInLaneException
+        """
 
         # Keep last values for each mapped control so we can detect button presses
         self._last_control_values = {
@@ -366,7 +371,6 @@ class CarlaConnector(QObject):
             world = client.get_world()
 
             # Sync + fixed delta
-            from hse.utils.settings import CARLA_FPS
             settings = world.get_settings()
             settings.synchronous_mode    = True
             settings.fixed_delta_seconds = 0.01 #recommended from CARLA -> DO NOT INCREASE or physics become weird!
@@ -387,6 +391,34 @@ class CarlaConnector(QObject):
 
             # 8) Auto-select previously saved camera position
             self._auto_select_camera(world)
+
+            # 9) Prepare the SGG package import 
+            # If the SGG repo folder exists, insert it into sys.path so we can import it.
+            if SGG_DIR.exists():
+                sys.path.insert(0, str(SGG_DIR))
+            # Dynamically import carla_sgg.sgg to get the SGG class
+            import importlib
+            sgg_mod = importlib.import_module("carla_sgg.sgg")
+            self._SGGClass = sgg_mod.SGG
+
+            # Prepare SGG abstractor functions 
+            # Import the abstractor utilities that process simulation state into graphs.
+            # process_to_rsv: full scene graph (Entities + Lanes + Relations)
+            # EgoNotInLaneException: raised when ego-vehicle is outside any lane
+            from carla_sgg.sgg_abstractor import (
+                process_to_rsv,           # RSV = Entities + Lanes + Relations
+                entities   as E,          # E   = Entities only
+                semgraph   as EL,         # EL  = Entities + Lanes
+                process_to_rsv as ER,     # ER  = Entities + Relations only
+                EgoNotInLaneException
+            )
+            # The connector can now use these functions to build and filter graphs as needed.
+            self._abstract_rsv       = process_to_rsv
+            self._abstract_entities  = E
+            self._abstract_semgraph  = EL
+            self._abstract_er        = ER
+            self._ego_not_in_lane_ex = EgoNotInLaneException
+            
 
             return True
         except Exception as e:
@@ -551,10 +583,10 @@ class CarlaConnector(QObject):
             steer    = current_controls.get("steering", 0.0)
             reverse  = (current_controls.get("reverse", 0.0) > 0.5)
 
-            # 4) If reverse is engaged, use brake axis as backward throttle
-            if reverse:
-                throttle = brake
-                brake    = 0.0
+            # 4) If reverse is engaged do nothing, works like this maybe needed if u want to bind brake and drive back on same axis... 
+            #if reverse:
+                #throttle = brake
+                #brake    = 0.0
 
             # 5) Build and send the VehicleControl to the last spawned actor
             control = self.carla.VehicleControl(
