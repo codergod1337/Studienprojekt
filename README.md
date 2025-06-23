@@ -63,6 +63,15 @@ python -m pip install --upgrade pip setuptools wheel
 # install correct pytorchversion first! ESPECIALY FOR WINDOWS-USERS
 pip install torch==1.10.1+cu113 torchvision==0.11.2+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
 pip install -r requirements.txt
+
+
+linux:
+pip install pycocotools
+#pycocotools==2.0.3
+
+
+windowsuser extra command:
+pip install pycocotools-windows
 ```
 
 ### 4. Set Up CARLA Simulator
