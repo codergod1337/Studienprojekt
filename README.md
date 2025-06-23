@@ -56,19 +56,20 @@ conda activate carla
 ```
 
 ### 3. Install Dependencies
+this includes the dependencies for the SGG repo
 
 ```bash
 # Install required Python packages
 python -m pip install --upgrade pip setuptools wheel
 # install correct pytorchversion first! ESPECIALY FOR WINDOWS-USERS
 pip install torch==1.10.1+cu113 torchvision==0.11.2+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
+
 pip install -r requirements.txt
 
 
 linux:
 pip install pycocotools
 #pycocotools==2.0.3
-
 
 windowsuser extra command:
 pip install pycocotools-windows
@@ -81,10 +82,18 @@ pip install pycocotools-windows
 
 https://carla.readthedocs.io/en/latest/download/
 
-## Usage/ starting
+### 5. installing
 
-1. connect Controller Device to your PC and install it
+1. connect Controller Device to your PC and install it correctly
 2. start App:
 ```bash
 python hse/examples/run.py
 ```
+3. in the App: click file/pull SGG
+-> in the Gropbox Scene Graph Generator status is supposed to switch to SGG ready
+this is only nescessary ONCE! you can click it again to update (git pull) the SGG-Repo
+
+
+# UI
+
+# Functions (inside)
