@@ -150,7 +150,6 @@ class ControllerManager(QObject):
             time.sleep(0.033)   # ~30Hz
 
 
-
     def get_all_states(self):
         """
         FOR DEBUG!!!!!
@@ -192,7 +191,8 @@ class ControllerManager(QObject):
 
             # buttons are already 0 or 1
             return {"axes": axes_out, "buttons": dict(self.raw_buttons)}
-        
+
+
     def get_mapped_controls(self) -> Dict[str, Optional[float]]:
         """
         For each function defined in controls_cfg, return its current
@@ -218,9 +218,7 @@ class ControllerManager(QObject):
                 # No assignment, so no value
                 mapped[func] = None
         return mapped
-
  
-
 
     def set_mapping(self, func: str, mtype: str, idx: int):
         with self._lock:
@@ -239,12 +237,14 @@ class ControllerManager(QObject):
             self.raw_axes = {i: 0.0 for i in range(js.get_numaxes())}
             self.raw_buttons = {j: False for j in range(js.get_numbuttons())}
 
+
     def shutdown(self):
         self._running = False
         self._thread.join(timeout=0.5)
         if self.current_joystick:
             self.current_joystick.quit()
         pygame.quit()
+        print("ControllerManager says Goodbye!")
 
 
 if __name__ == "__main__":

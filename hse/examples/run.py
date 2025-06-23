@@ -17,13 +17,13 @@ from hse.carla_connector import CarlaConnector
 
 
 def main():
-    app = QApplication(sys.argv)
+    app         = QApplication(sys.argv)
 
-    dm = DataManager()
-    cm = ControllerManager(dm)
-    connector = CarlaConnector(dm)
+    dm          = DataManager()
+    cm          = ControllerManager(dm)
+    connector   = CarlaConnector(dm)
 
-    window = ControlPanel(cm, connector)
+    window      = ControlPanel(cm, connector)
     window.show()
 
     sys.exit(app.exec_())

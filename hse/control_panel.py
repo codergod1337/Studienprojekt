@@ -50,9 +50,11 @@ class ControlPanel(QMainWindow):
         # Link recording buttons to their handlers
         self.refs["start_record_btn"].clicked.connect(self._on_start_recording)
         self.refs["stop_record_btn"].clicked.connect(self._on_stop_recording)
-        recording = self.data.get("recording_active", False)
+        recording = self.connector.get_recording_status()
         self.refs["start_record_btn"].setEnabled(not recording)
         self.refs["stop_record_btn"].setEnabled(recording)
+        # listen so signal
+        self.connector.recording_status.connect(self._on_recording_status_changed)
 
         # Initialize frame counter display and connect to connector's signal
         self.refs["label_framecount"].setText("0")
@@ -114,11 +116,18 @@ class ControlPanel(QMainWindow):
 
 
     def closeEvent(self, event):
-        """Stop the input polling worker and clean up the thread on window close"""
+        """Stop the input polling worker and clean up the thread on window close."""
+        print("close event, Control Panel says Goodbye!")
+        self.connector.shutdown()
+        self.cm.shutdown() 
+
         self._input_worker.stop()
         self._input_thread.quit()
         self._input_thread.wait()
+
+
         super().closeEvent(event)
+       
 
 
     @pyqtSlot(dict, str)
@@ -380,6 +389,12 @@ class ControlPanel(QMainWindow):
 
         # Record-Logik terminate...
         self.connector.stop_recording()
+
+    @pyqtSlot(bool)
+    def _on_recording_status_changed(self, active: bool):
+        """UI-Update"""
+        self.refs["start_record_btn"].setEnabled(not active)
+        self.refs["stop_record_btn"].setEnabled(active)
 
 
 

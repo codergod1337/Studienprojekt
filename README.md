@@ -20,16 +20,13 @@ HDD:
 │ ├── CARLA
 │ │ └── CARLA_0.9.14
 │ ├── carla_scene_graphs
-│ └── thomas
-│ └── cruise_sgg.py
+│ └── hse [all scripts]
+│ └── hse/data [sgg record files and state.json]
 
 
-evtl. https://visualstudio.microsoft.com/de/visual-cpp-build-tools/
 
 conda create -n all37 python=3.7 -y
 conda activate all37
-
-pip install dist\carla-0.9 .whql
 
 pip install networkx pandas matplotlib shapely pyquaternion plotly  setuptools wheel pygame numpy pyqt5 pygame
 conda install pytorch=1.10.1 cudatoolkit=11.3 -c pytorch

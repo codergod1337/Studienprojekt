@@ -5,9 +5,8 @@
     "carla_version": "CARLA_0.9.14",
     "model": "vehicle.tesla.model3",
     "sgg_loaded": true,
-    "recording_active": false,
-    "last_record_date": "2025-06-21",
-    "last_record_number": 3,
+    "last_record_date": "2025-06-23",
+    "last_record_number": 23,
     "camera_selected": "bird",
     "controls": {
         "throttle": {
@@ -83,5 +82,6 @@
             ]
         }
     },
-    "active_controller": "T.16000M"
+    "active_controller": "T.16000M",
+    "recording_active": false
 }

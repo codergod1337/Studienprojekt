@@ -21,7 +21,6 @@ class DataManager:
 
     def __init__(self):
         self.state = {}
-        #self.carla_versions = []  # ← Neue Liste für Versionen
         self.carla_versions: list[str] = []
         self._validate_and_load()
         self._scan_carla_versions()  

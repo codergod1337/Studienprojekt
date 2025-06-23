@@ -10,7 +10,7 @@ SGG_DIR = ROOT_DIR / "carla_scene_graphs"
 DATA_DIR = ROOT_DIR / "hse" / "data"
 CONFIG_PATH = DATA_DIR / "state.json"
 
-CARLA_FPS: int = 20
+CARLA_FPS: int = 20 # not in use
 
 # === Kamera-Perspektiven ===
 # Schlüssel = Name, Wert = optionaler Transform (None = free-Camera)
@@ -32,7 +32,8 @@ CAMERA_POSITIONS: Dict[str, Any] = {
 
 
 SGG_FPS = 20.0
-
+SGG_RENDER_DIST = 20 #Default is 50
+QUEUE_WORKER_COUNT: int = 4 #Threads used for recording SG Frames
 
 # === Default-Konfiguration ===
 DEFAULT_VALUES: Dict[str, object] = {
