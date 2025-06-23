@@ -310,13 +310,6 @@ class CarlaConnector(QObject):
                 self._record_queue.task_done()
 
 
-
-
-
-
-
-
-
     def _run(self):
         """
         Main loop of the connector running in its own thread.

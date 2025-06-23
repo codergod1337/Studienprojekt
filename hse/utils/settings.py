@@ -43,7 +43,6 @@ DEFAULT_VALUES: Dict[str, object] = {
     "carla_version": "CARLA_0.9.14",  # wird beim Start ggf. gesetzt
     "model": "vehicle.tesla.model3", 
     "sgg_loaded": False,
-    "recording_active": False,
     "last_record_date": "",
     "last_record_number": 0,
     "camera_selected": "free",
