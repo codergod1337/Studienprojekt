@@ -94,6 +94,85 @@ python hse/examples/run.py
 this is only nescessary ONCE! you can click it again to update (git pull) the SGG-Repo
 
 
-# UI
+# User Interface (UI)
+- **Purpose:**  
+  Provides an intuitive front-end for the user to interact with the simulator and underlying modules without touching code.
 
-# Functions (inside)
+- **Responsibilities:**  
+  - **Connection panel:**  
+    - Input fields for CARLA host/port/version  
+    - “Connect” button that invokes `CarlaConnector.connect()`  
+    - Status indicator showing “Connected” / “Disconnected”  
+  - **Vehicle controls:**  
+    - Dropdown to select a vehicle blueprint (populated via `blueprints_loaded` signal)  
+    - “Spawn” button that calls `CarlaConnector.spawn_vehicle()`  
+    - Live display of the last-spawned vehicle’s ID or type  
+  - **Camera view selector:**  
+    - Dropdown or radio buttons listing available views (e.g. bird’s-eye, cockpit, free)  
+    - Emits `set_camera_position` when changed  
+  - **Recording controls:**  
+    - Toggle button for Start/Stop recording (wired to `start_recording()` / `stop_recording()`)  
+    - Frame count display updated via `frame_recorded` signal  
+  - **Joystick visualizer widget:**  
+    - Embedded view showing axis positions and button states in real time  
+    - Option to enter “rebind” mode to capture a new button or axis for a control function  
+  - **menue: file/ pull SGG**  
+    - pulls the Scene Graph Repo  
+  - **menue: CARLA/**  
+    - after connecting to Carla the vehicle modle (blueprint) can be selected  
+    - the camera position can be chosen
+  - **menue: controls**  
+    - the JoystickVisualizer is started as a widget and can be used for Key-Binding
+    - the active "Hardware-Input-Divice" can be selected
+      
+
+ 
+
+- **Behavior:**  
+  - All GUI actions emit Qt signals or call slots on `CarlaConnector` and `ControllerManager`.  
+  - On window close (`closeEvent`), it  cleans up all threads.  
+
+# Functions (under the hood)
+## DataManager
+- **Purpose:**  
+  Persists the application’s state (e.g. host, port, selected vehicle model, key bindings) in a `data/state.json` file and reloads it on startup.  
+- **Responsibilities:**  
+  - Load saved settings to restore the previous session.  
+  - Let any other class save or retrieve arbitrary key–value pairs.
+
+## ControllerManager
+- **Purpose:**  
+  Reads joystick or gamepad input continuously in a background thread (powered by `pygame.init()`).  
+- **Responsibilities:**  
+  - Poll hardware controls and map raw axes/buttons into named control functions (e.g. `"throttle"`, `"brake"`, `"respawn"`).  
+  - Expose `get_mapped_controls()` to return only the controls you’ve explicitly bound.  
+  - Provide `get_all_states()` for debugging, which dumps every axis and button value to the console.  
+- **Bonus:**  
+  Can run standalone in debug mode to print all joystick activity.
+
+### JoystickVisualizer
+- **Purpose:**  
+  A small UI helper that shows your current control mappings in real time.  
+- **Responsibilities:**  
+  - Display which axis or button is mapped to which function.  
+  - Let you assign or rebind controls on the fly.
+
+## CarlaConnector
+- **Purpose:**  
+  Manages the connection to the CARLA simulator and drives the simulation loop in its own thread.  
+- **Responsibilities:**  
+  1. Dynamically import CARLA’s Python API based on your selected version in `initialize_connection()`.  
+  2. Connect to the CARLA server and enable synchronous (“fixed‐tick”) mode.  
+  3. Run `_run()` in the background, which kicks off `_simulation_loop()`.  
+  4. Spawn vehicles on demand (processing “spawn” commands from a queue).  
+  5. Fetch control inputs from `ControllerManager` and apply them to the most recently spawned vehicle.  
+  6. Adjust the spectator camera based on your chosen view.  
+  7. Use a thread pool for `_record_worker` tasks, allowing multiple scene‐graph (SGG) snapshots to be generated and saved in parallel.
+
+## ControlPanel (GUI)
+- **Purpose:**  
+  The central user interface that ties everything together.  
+- **Responsibilities:**  
+  - Visualize the current state of `DataManager`, `ControllerManager`, and `CarlaConnector`.  
+  - Offer buttons, dropdowns, and status indicators for connecting, spawning, recording, etc.  
+  - Override `closeEvent` to orchestrate a clean shutdown of all background threads and resources.

@@ -1,19 +1,31 @@
-# hse/utils/paths.py
+# hse/utils/settings.py
+
+"""
+This module defines all of the fixed paths, simulation parameters, 
+camera presets, and default application state values for the HSE CARLA tools.
+"""
 
 from pathlib import Path
 from typing import Dict, Any  # Statt dict[...] → Dict[...] verwenden
 
-ROOT_DIR = Path(__file__).resolve().parents[2]  # z. B. .../Studienprojekt
 
+# === Project directory structure ===
+ROOT_DIR = Path(__file__).resolve().parents[2]  
 CARLA_DIR = ROOT_DIR / "CARLA"
 SGG_DIR = ROOT_DIR / "carla_scene_graphs" 
 DATA_DIR = ROOT_DIR / "hse" / "data"
 CONFIG_PATH = DATA_DIR / "state.json"
 
+
+# === Simulation parameters ===
+SGG_FPS = 20.0
+SGG_RENDER_DIST = 20 #Default is 50
+QUEUE_WORKER_COUNT: int = 4 #Threads used for recording SG Frames
 CARLA_FPS: int = 20 # not in use
 
-# === Kamera-Perspektiven ===
-# Schlüssel = Name, Wert = optionaler Transform (None = free-Camera)
+
+# === Camera preset ===
+# key = friendly name, value = transform dict (None gives free camera)
 CAMERA_POSITIONS: Dict[str, Any] = {
     "free": None,
     "cockpit": {
@@ -31,16 +43,12 @@ CAMERA_POSITIONS: Dict[str, Any] = {
 }
 
 
-SGG_FPS = 20.0
-SGG_RENDER_DIST = 20 #Default is 50
-QUEUE_WORKER_COUNT: int = 4 #Threads used for recording SG Frames
-
-# === Default-Konfiguration ===
+# === Default application state ===
 DEFAULT_VALUES: Dict[str, object] = {
     "host": "localhost",
     "port": 2000,
     "timeout": 15.0,
-    "carla_version": "CARLA_0.9.14",  # wird beim Start ggf. gesetzt
+    "carla_version": "CARLA_0.9.14",  
     "model": "vehicle.tesla.model3", 
     "sgg_loaded": False,
     "last_record_date": "",
