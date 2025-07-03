@@ -6,7 +6,7 @@
     "model": "vehicle.tesla.model3",
     "sgg_loaded": true,
     "last_record_date": "2025-07-03",
-    "last_record_number": 7,
+    "last_record_number": 9,
     "camera_selected": "bird",
     "active_controller": "T.16000M Joystick",
     "controls": {

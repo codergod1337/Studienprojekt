@@ -163,7 +163,7 @@ class DataManager:
         print(f"🔍 Found CARLA versions: {self.carla_versions}")
 
         if not self.carla_versions:
-            print("⚠️ No CARLA versions detected! Please download at least CARLA 0.9.14 to:")
+            print("⚠️ No CARLA versions detected! Please download and extract at least CARLA 0.9.14 to:")
             print(f"    → {CARLA_DIR}")
 
 

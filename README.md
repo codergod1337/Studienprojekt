@@ -1,10 +1,10 @@
-# CarlaProject need a name^^
+# NEED 4 CARLA HOT PURSUIT
 
 ## Project Overview
 
-This is a data collection and scene graph generation framework for human driver behavior 
-in the CARLA simulator. The goal is to record real human driving maneuvers and reconstruct detailed scene graphs, enabling:
+This repository provides a data‐collection and scene‐graph generation framework for human driver behavior in the [CARLA simulator](https://carla.org/).
 
+**Key Objectives:**
 * **Behavior Analysis**: Capture throttle, braking, steering, and camera interactions of a human operator to build a rich dataset of realistic driving patterns.
 * **Scenario Recreation**: Reproduce and analyze traffic incidents (near-misses, collisions) by replaying human-driven trajectories in a controlled simulation environment.
 * **Scene Graph Extraction**: Automatically generate spatial and relational graphs of scene entities (vehicles, lanes, signs) synchronized with control inputs.
@@ -13,9 +13,9 @@ in the CARLA simulator. The goal is to record real human driving maneuvers and r
 Below is the top-level folder structure of this project:
 ROOT/  
 ├── CARLA/  
-│   ├── CARLA_0.9.14/ # <- mandatory other versions optional  
+│   ├── CARLA_0.9.14/ #  Required; other versions optional  
 │   └── CARLA_0.9.15/  
-├── carla_scene_graphs/ # <- https://github.com/less-lab-uva/carla_scene_graphs.git  
+├── carla_scene_graphs/ # <- Submodule: https://github.com/less-lab-uva/carla_scene_graphs.git  
 ├── hse/  
 │   ├── examples/  
 │   │   └── run.py  
@@ -29,14 +29,17 @@ ROOT/
 │       ├── paths.py  
 │       └── joystick_visualizer.py  
 ├── requirements.txt  
-└── README.md  
+└── README.md # You are here  
 
 ## Scene Graph Generation Library
-This project uses the scene graph extraction code from the less-lab-uva/carla_scene_graphs repository. We have integrated this library directly into our workflow to process simulation state into relational graphs of entities, lanes, and their interactions
+
+We integrate the [carla_scene_graphs](https://github.com/less-lab-uva/carla_scene_graphs) library to process simulation state into relational graphs of entities, lanes, and interactions. The Control Panel UI automates cloning or updating this repo via the **Pull SGG** action.
+
+---
 
 ## Installation
 
-Follow these steps to set up the development environment:
+Follow the steps below to set up and run the application.
 
 ### 1. Clone the Repository
 
@@ -46,7 +49,7 @@ git clone https://github.com/codergod1337/Studienprojekt.git
 cd Studienprojekt
 ```
 
-### 2. Create Conda Environment
+### 2. Create & Activate Conda Environment
 
 ```bash
 # Create a new Conda environment named "carla" with Python 3.7
@@ -80,11 +83,11 @@ pip install pycocotools-windows
 1. Download CARLA 0.9.14 to the `ROOT/CARLA` directory (in the project root, create if not there).
 https://carla.readthedocs.io/en/latest/download/
 https://github.com/carla-simulator/carla/releases/tag/0.9.14/
-2. extract the ZIP-file in this directory `ROOT/CARLA/CARLA_0.9.14/*`.
+2. extract the ZIP-file in this directory `ROOT/CARLA/CARLA_0.9.14/*` use the default subfolder name `CARLA_0.9.14` or the version selection will not work.
 
-### 5. 1st Steps after Launching App (init)
+### 5. Initial App Launch
 
-1. connect Controller Device to your PC and install drivers correctly
+1. connect Controller Device (Joystick) to your PC and install drivers
 2. start App:
 ```bash
 python hse/examples/run.py
@@ -132,31 +135,10 @@ this is only nescessary ONCE! you can click it again to update (git pull) the SG
   - On window close (`closeEvent`), it  cleans up all threads.  
 
 
-# Functions (under the hood)
+# Quick Module Description
 
-## DataManager
-- **Purpose:**  
-  Persists the application’s state (e.g. host, port, selected vehicle model, key bindings) in a `data/state.json` file and reloads it on startup.  
-- **Responsibilities:**  
-  - Load saved settings to restore the previous session.  
-  - Let any other class save or retrieve arbitrary key–value pairs.
-
-## ControllerManager
-- **Purpose:**  
-  Reads joystick or gamepad input continuously in a background thread (powered by `pygame.init()`).  
-- **Responsibilities:**  
-  - Poll hardware controls and map raw axes/buttons into named control functions (e.g. `"throttle"`, `"brake"`, `"respawn"`).  
-  - Expose `get_mapped_controls()` to return only the controls you’ve explicitly bound.  
-  - Provide `get_all_states()` for debugging, which dumps every axis and button value to the console.  
-- **Bonus:**  
-  Can run standalone in debug mode to print all joystick activity.
-
-### JoystickVisualizer
-- **Purpose:**  
-  A small UI helper that shows your current control mappings in real time.  
-- **Responsibilities:**  
-  - Display which axis or button is mapped to which function.  
-  - Let you assign or rebind controls on the fly.
+## utils/settings.py
+Default values such as pathes can be changed here.
 
 ## CarlaConnector
 - **Purpose:**  
@@ -168,7 +150,9 @@ this is only nescessary ONCE! you can click it again to update (git pull) the SG
   4. Spawn vehicles on demand (processing “spawn” commands from a queue).  
   5. Fetch control inputs from `ControllerManager` and apply them to the most recently spawned vehicle.  
   6. Adjust the spectator camera based on your chosen view.  
-  7. Use a thread pool for `_record_worker` tasks, allowing multiple scene‐graph (SGG) snapshots to be generated and saved in parallel.
+  7. Use a thread pool for `_record_worker` tasks, allowing multiple scene‐graph (SGG) snapshots to be generated and saved in parallel.  
+
+more details in [CarlaConnector README](hse/docs/carla_connector_README.md)
 
 ## ControlPanel (GUI)
 - **Purpose:**  
@@ -177,3 +161,46 @@ this is only nescessary ONCE! you can click it again to update (git pull) the SG
   - Visualize the current state of `DataManager`, `ControllerManager`, and `CarlaConnector`.  
   - Offer buttons, dropdowns, and status indicators for connecting, spawning, recording, etc.  
   - Override `closeEvent` to orchestrate a clean shutdown of all background threads and resources.
+
+more details in [ControlPanel README](hse/docs/control_panel_README.md)  
+
+## ControllerManager
+- **Purpose:**  
+  Reads joystick or gamepad input continuously in a background thread (powered by `pygame.init()`).  
+- **Responsibilities:**  
+  - Poll hardware controls and map raw axes/buttons into named control functions (e.g. `"throttle"`, `"brake"`, `"respawn"`).  
+  - Expose `get_mapped_controls()` to return only the controls you’ve explicitly bound.  
+  - Provide `get_all_states()` for debugging, which dumps every axis and button value to the console.  
+- **Bonus:**  
+  Can run standalone in debug mode to print all joystick activity.
+
+more details in [ControllerManager README](hse/docs/controller_manager_README.md)  
+
+### JoystickVisualizer
+- **Purpose:**  
+  A small UI helper that shows your current control mappings in real time.  
+- **Responsibilities:**  
+  - Display which axis or button is mapped to which function.  
+  - Let you assign or rebind controls on the fly.
+
+
+## DataManager
+- **Purpose:**  
+  Persists the application’s state (e.g. host, port, selected vehicle model, key bindings) in a `data/state.json` file and reloads it on startup.  
+- **Responsibilities:**  
+  - Load saved settings to restore the previous session.  
+  - Let any other class save or retrieve arbitrary key–value pairs.
+
+
+# Troubleshooting
+- delete `data/state.json` so default values are loaded from settings.py
+- clone carla_scene_graphs manually
+- after the first key binding make sure to connect to carla, sometimes the changes are not saved otherwise
+- after connection loss restart app
+
+
+## License & Credits
+
+* MIT License (unless otherwise noted)
+* CARLA simulator by [Carla-Simulator](https://github.com/carla-simulator/carla)
+* Scene graph extraction by [less-lab-uva](https://github.com/less-lab-uva/carla_scene_graphs)

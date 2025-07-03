@@ -262,16 +262,12 @@ if __name__ == "__main__":
     import time
     from hse.data_manager import DataManager
 
-    # -----------------------------------------------------------------------------
     # Instantiate DataManager and ControllerManager
-    # -----------------------------------------------------------------------------
     dm = DataManager()
     cm = ControllerManager(dm)
 
-    # -----------------------------------------------------------------------------
     # Simple console UI: poll and display all axis/button values of the active joystick
     # Clears the console each frame so the output appears “static”
-    # -----------------------------------------------------------------------------
     print("Joystick test running. Press Ctrl+C to exit.")
     try:
         while True:
@@ -307,34 +303,6 @@ if __name__ == "__main__":
     finally:
         # Clean up thread and pygame
         cm.shutdown()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
