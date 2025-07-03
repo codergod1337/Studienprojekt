@@ -11,25 +11,25 @@ in the CARLA simulator. The goal is to record real human driving maneuvers and r
 
 ## Repository Structure
 Below is the top-level folder structure of this project:
-Studienprojekt/
-├── CARLA/
-│   ├── CARLA_0.9.14/ # <- mandatory other versions optional
-│   └── CARLA_0.9.15/
-├── carla_scene_graphs/ # <- https://github.com/less-lab-uva/carla_scene_graphs.git 
-├── hse/
-│   ├── examples/
-│   │   └── run.py
-│   ├── control_panel.py
-│   ├── carla_connector.py
-│   ├── controller_manager.py
-│   ├── data_manager.py
-│   ├── ui_builder.py
-│   └── utils/
-│       ├── settings.py
-│       ├── paths.py
-│       └── joystick_visualizer.py
-├── requirements.txt
-└── README.md
+ROOT/  
+├── CARLA/  
+│   ├── CARLA_0.9.14/ # <- mandatory other versions optional  
+│   └── CARLA_0.9.15/  
+├── carla_scene_graphs/ # <- https://github.com/less-lab-uva/carla_scene_graphs.git  
+├── hse/  
+│   ├── examples/  
+│   │   └── run.py  
+│   ├── control_panel.py  
+│   ├── carla_connector.py  
+│   ├── controller_manager.py  
+│   ├── data_manager.py  
+│   ├── ui_builder.py  
+│   └── utils/  
+│       ├── settings.py  
+│       ├── paths.py  
+│       └── joystick_visualizer.py  
+├── requirements.txt  
+└── README.md  
 
 ## Scene Graph Generation Library
 This project uses the scene graph extraction code from the less-lab-uva/carla_scene_graphs repository. We have integrated this library directly into our workflow to process simulation state into relational graphs of entities, lanes, and their interactions
@@ -75,21 +75,21 @@ windowsuser extra command:
 pip install pycocotools-windows
 ```
 
-### 4. Set Up CARLA Simulator
+### 4. Download and extract CARLA Simulator
 
 1. Download CARLA 0.9.14 to the `ROOT/CARLA` directory (in the project root, create if not there).
 https://carla.readthedocs.io/en/latest/download/
 https://github.com/carla-simulator/carla/releases/tag/0.9.14/
 2. extract the ZIP-file in this directory `ROOT/CARLA/CARLA_0.9.14/*`.
 
-### 5. installing
+### 5. 1st Steps after Launching App (init)
 
 1. connect Controller Device to your PC and install drivers correctly
 2. start App:
 ```bash
 python hse/examples/run.py
 ```
-3. make sure there is no carla_scene_graphs folder in your root directory. otherwise the necessary repo is not able to be cloned by the app.
+3. make sure there is no carla_scene_graphs folder in your root directory. Otherwise the necessary repo is not able to be cloned by the app.
 4. in the App: click file/pull SGG
 -> in the Gropbox Scene Graph Generator status is supposed to switch to SGG ready
 this is only nescessary ONCE! you can click it again to update (git pull) the SGG-Repo
@@ -125,15 +125,15 @@ this is only nescessary ONCE! you can click it again to update (git pull) the SG
   - **menue: controls**  
     - the JoystickVisualizer is started as a widget and can be used for Key-Binding
     - the active "Hardware-Input-Divice" can be selected
-      
-
  
 
 - **Behavior:**  
   - All GUI actions emit Qt signals or call slots on `CarlaConnector` and `ControllerManager`.  
   - On window close (`closeEvent`), it  cleans up all threads.  
 
+
 # Functions (under the hood)
+
 ## DataManager
 - **Purpose:**  
   Persists the application’s state (e.g. host, port, selected vehicle model, key bindings) in a `data/state.json` file and reloads it on startup.  
