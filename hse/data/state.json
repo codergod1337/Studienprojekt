@@ -5,9 +5,10 @@
     "carla_version": "CARLA_0.9.14",
     "model": "vehicle.tesla.model3",
     "sgg_loaded": true,
-    "last_record_date": "2025-06-23",
-    "last_record_number": 35,
+    "last_record_date": "2025-07-03",
+    "last_record_number": 7,
     "camera_selected": "bird",
+    "active_controller": "T.16000M Joystick",
     "controls": {
         "throttle": {
             "type": "axis",
@@ -15,7 +16,7 @@
         },
         "brake": {
             "type": "button",
-            "id": 3
+            "id": 10
         },
         "steering": {
             "type": "axis",
@@ -23,15 +24,15 @@
         },
         "reverse": {
             "type": "button",
-            "id": 13
+            "id": 3
         },
         "respawn": {
             "type": "button",
-            "id": 14
+            "id": 1
         },
         "cam_switch": {
             "type": "button",
-            "id": 1
+            "id": 2
         },
         "record": {
             "type": "button",
@@ -39,7 +40,7 @@
         }
     },
     "known_devices": {
-        "T.16000M": {
+        "T.16000M Joystick": {
             "axes": [
                 {
                     "id": 0,
@@ -48,12 +49,12 @@
                 },
                 {
                     "id": 1,
-                    "style": "bipolar",
-                    "inverted": true
+                    "style": "unipolar",
+                    "inverted": false
                 },
                 {
                     "id": 2,
-                    "style": "bipolar",
+                    "style": "unipolar",
                     "inverted": false
                 },
                 {
@@ -81,7 +82,5 @@
                 15
             ]
         }
-    },
-    "active_controller": "T.16000M",
-    "recording_active": false
+    }
 }

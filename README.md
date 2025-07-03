@@ -77,19 +77,20 @@ pip install pycocotools-windows
 
 ### 4. Set Up CARLA Simulator
 
-1. Download and extract CARLA 0.9.14 or 0.9.15 to the `CARLA/` directory in the project root.
-2. Verify that `CARLA_0.9.14/WindowsNoEditor` (or your chosen version) exists.
-
+1. Download CARLA 0.9.14 to the `ROOT/CARLA` directory (in the project root, create if not there).
 https://carla.readthedocs.io/en/latest/download/
+https://github.com/carla-simulator/carla/releases/tag/0.9.14/
+2. extract the ZIP-file in this directory `ROOT/CARLA/CARLA_0.9.14/*`.
 
 ### 5. installing
 
-1. connect Controller Device to your PC and install it correctly
+1. connect Controller Device to your PC and install drivers correctly
 2. start App:
 ```bash
 python hse/examples/run.py
 ```
-3. in the App: click file/pull SGG
+3. make sure there is no carla_scene_graphs folder in your root directory. otherwise the necessary repo is not able to be cloned by the app.
+4. in the App: click file/pull SGG
 -> in the Gropbox Scene Graph Generator status is supposed to switch to SGG ready
 this is only nescessary ONCE! you can click it again to update (git pull) the SGG-Repo
 
