@@ -102,6 +102,8 @@ this is only necessary ONCE! you can click it again to update (git pull) the SGG
 - **Purpose:**  
   Provides an intuitive frontend for the user to interact with the simulator and underlying modules without touching code.
 
+![screenshotUI](hse/docs/screenshots/control_panel_connected.png "Fully Connected ControlPanel")
+
 - **Responsibilities:**  
   - **Connection panel:**  
     - Input fields for CARLA host/port/version  
@@ -120,6 +122,7 @@ this is only necessary ONCE! you can click it again to update (git pull) the SGG
   - **Joystick visualizer widget:**  
     - Embedded view showing axis positions and button states in real time  
     - Option to enter “rebind” mode to capture a new button or axis for a control function  
+    ![screenshotVISUALIZER](hse/docs/screenshots/controller_visualizer.png "Visualizer")  
   - **menu: file/ pull SGG**  
     - pulls the Scene Graph Repo  
   - **menu: CARLA/**  
