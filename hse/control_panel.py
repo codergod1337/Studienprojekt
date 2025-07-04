@@ -84,10 +84,12 @@ class ControlPanel(QMainWindow):
         # Link the spawn button to the connector's spawn_vehicle method
         self.refs["spawn_button"].clicked.connect(self._on_spawn_clicked)
 
+
     @pyqtSlot(int)
     def _on_frame_recorded(self, count: int):
         """Update the label showing how many frames have been recorded"""
         self.refs["label_framecount"].setText(str(count))
+
 
     def _open_control_manager(self):
         """Bring the existing joystick window to front, or create and show it"""
@@ -97,6 +99,7 @@ class ControlPanel(QMainWindow):
         else:
             self._control_win = JoystickVisualizer(self.cm)
             self._control_win.show()
+
 
     def _populate_camera_menu(self):
         """Clear existing camera menu and add actions for each predefined camera position"""
@@ -125,10 +128,8 @@ class ControlPanel(QMainWindow):
         self._input_thread.quit()
         self._input_thread.wait()
 
-
         super().closeEvent(event)
        
-
 
     @pyqtSlot(dict, str)
     def _update_input_fields(self, current: Dict[str, Any], device_name: str):
@@ -207,7 +208,6 @@ class ControlPanel(QMainWindow):
         self.refs["toolButton"].clicked.connect(self._on_connect)
 
 
-
     def _save_field_on_focus_lost(self, field):
         """
         Triggered when the IP or port field loses focus.
@@ -238,6 +238,7 @@ class ControlPanel(QMainWindow):
         # Delegate the actual connection logic to the connector.
         self.connector.connect()
 
+
     @pyqtSlot(bool, str)
     def _on_connector_result(self, success: bool, message: str):
         """
@@ -264,7 +265,6 @@ class ControlPanel(QMainWindow):
             self.refs["label_status"].setText("🔴 Disconnected")
             self.refs["label_status"].setStyleSheet("color: red; font-weight: bold;")
             QMessageBox.critical(self, "Verbindungsfehler", message)
-
 
 
     @pyqtSlot(str)
@@ -296,6 +296,7 @@ class ControlPanel(QMainWindow):
                 QMessageBox.critical(self, "Error opening folder", str(e))
         else:
             QMessageBox.critical(self, "Fehler", f"Ordner nicht gefunden:\n{path}")
+
 
     def open_folder(self, path: Path):
         """
@@ -390,19 +391,12 @@ class ControlPanel(QMainWindow):
         # Record-Logik terminate...
         self.connector.stop_recording()
 
+
     @pyqtSlot(bool)
     def _on_recording_status_changed(self, active: bool):
         """UI-Update"""
         self.refs["start_record_btn"].setEnabled(not active)
         self.refs["stop_record_btn"].setEnabled(active)
-
-
-
-
-
-
-
-
 
 
 

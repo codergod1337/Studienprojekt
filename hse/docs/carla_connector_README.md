@@ -30,11 +30,13 @@ This deferred import strategy allows you to keep multiple CARLA versions in the 
 
 ### 3.1 Main Daemon Thread (`_run`)
 
-The connector spawns a daemon thread that divides into two phases:
+The connector spawns a daemon thread that is divided into two phases:
 
 1. **Initialization Phase** (`_wait_for_connect()`)
 
    * Blocks until `connect()` is called.
+   * then: `_initialize_connection()`
+   
 2. **Core Simulation Loop** (`_simulation_loop()`)
 
    * Runs as long as `_running` is `True`.

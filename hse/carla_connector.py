@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     import carla    # only for Typecheck
 
 
-
 class CarlaConnector(QObject):
     """
     Runs in its own thread, waits for connect() to be triggered,
@@ -37,7 +36,6 @@ class CarlaConnector(QObject):
     camera_position_selected = pyqtSignal(str)         # emitted when camera choice changes
     frame_recorded           = pyqtSignal(int)          # emitted after each recorded frame
     recording_status         = pyqtSignal(bool)
-
 
 
     def __init__(self, data_manager: DataManager):
@@ -390,7 +388,6 @@ class CarlaConnector(QObject):
             self._abstract_er        = ER
             self._ego_not_in_lane_ex = EgoNotInLaneException
             
-
             return True
         except Exception as e:
             self.connection_result.emit(False, f"Connection failed: {e}")
@@ -414,6 +411,7 @@ class CarlaConnector(QObject):
                 self._vehicle_model = saved_model
             self.vehicle_model_selected.emit(saved_model)
 
+
     def _auto_select_camera(self, world):
         """
         If a saved camera key exists in settings, re-apply it
@@ -424,6 +422,7 @@ class CarlaConnector(QObject):
             with self._lock:
                 self._camera_selected = saved_cam
             self.camera_position_selected.emit(saved_cam)
+
 
     def _simulation_loop(self):
         """
@@ -489,7 +488,6 @@ class CarlaConnector(QObject):
             # 4) Spawn the actor and record it
             actor = self._world.spawn_actor(bp, transform)
             self._spawned_vehicles.append(actor)
-
 
 
     def _process_control(self):

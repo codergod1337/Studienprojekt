@@ -18,7 +18,7 @@ ROOT/
 ├── carla_scene_graphs/ # <- Submodule: https://github.com/less-lab-uva/carla_scene_graphs.git  
 ├── hse/  
 │   ├── examples/  
-│   │   └── run.py  
+│   │   └── run.py # <- Starting app here  
 │   ├── control_panel.py  
 │   ├── carla_connector.py  
 │   ├── controller_manager.py  
@@ -64,7 +64,7 @@ this includes the dependencies for the SGG repo
 ```bash
 # Install required Python packages
 python -m pip install --upgrade pip setuptools wheel
-# install correct pytorchversion first! ESPECIALY FOR WINDOWS-USERS
+# install the correct PyTorch version first! ESPECIALY FOR WINDOWS USERS
 pip install torch==1.10.1+cu113 torchvision==0.11.2+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
 
 pip install -r requirements.txt
@@ -80,10 +80,10 @@ pip install pycocotools-windows
 
 ### 4. Download and extract CARLA Simulator
 
-1. Download CARLA 0.9.14 to the `ROOT/CARLA` directory (in the project root, create if not there).
-https://carla.readthedocs.io/en/latest/download/
-https://github.com/carla-simulator/carla/releases/tag/0.9.14/
-2. extract the ZIP-file in this directory `ROOT/CARLA/CARLA_0.9.14/*` use the default subfolder name `CARLA_0.9.14` or the version selection will not work.
+1. Download CARLA 0.9.14 to the `ROOT/CARLA` directory (in the project root, create if not there).  
+https://carla.readthedocs.io/en/latest/download/  
+https://github.com/carla-simulator/carla/releases/tag/0.9.14/  
+2. extract the ZIP file in this directory `ROOT/CARLA/CARLA_0.9.14/*` use the default subfolder name `CARLA_0.9.14` or the version selection will not work.
 
 ### 5. Initial App Launch
 
@@ -94,13 +94,13 @@ python hse/examples/run.py
 ```
 3. make sure there is no carla_scene_graphs folder in your root directory. Otherwise the necessary repo is not able to be cloned by the app.
 4. in the App: click file/pull SGG
--> in the Gropbox Scene Graph Generator status is supposed to switch to SGG ready
-this is only nescessary ONCE! you can click it again to update (git pull) the SGG-Repo
+-> in the Groupbox Scene Graph Generator status is supposed to switch to SGG ready
+this is only necessary ONCE! you can click it again to update (git pull) the SGG-Repo
 
 
 # User Interface (UI)
 - **Purpose:**  
-  Provides an intuitive front-end for the user to interact with the simulator and underlying modules without touching code.
+  Provides an intuitive frontend for the user to interact with the simulator and underlying modules without touching code.
 
 - **Responsibilities:**  
   - **Connection panel:**  
@@ -120,14 +120,14 @@ this is only nescessary ONCE! you can click it again to update (git pull) the SG
   - **Joystick visualizer widget:**  
     - Embedded view showing axis positions and button states in real time  
     - Option to enter “rebind” mode to capture a new button or axis for a control function  
-  - **menue: file/ pull SGG**  
+  - **menu: file/ pull SGG**  
     - pulls the Scene Graph Repo  
-  - **menue: CARLA/**  
-    - after connecting to Carla the vehicle modle (blueprint) can be selected  
+  - **menu: CARLA/**  
+    - after connecting to Carla the vehicle model (blueprint) can be selected  
     - the camera position can be chosen
-  - **menue: controls**  
-    - the JoystickVisualizer is started as a widget and can be used for Key-Binding
-    - the active "Hardware-Input-Divice" can be selected
+  - **menu: controls**  
+    - the JoystickVisualizer is started as a widget and can be used for Key-Bindings
+    - the active "Hardware-Input-Device" can be selected
  
 
 - **Behavior:**  
@@ -138,7 +138,7 @@ this is only nescessary ONCE! you can click it again to update (git pull) the SG
 # Quick Module Description
 
 ## utils/settings.py
-Default values such as pathes can be changed here.
+Default values such as paths can be changed here.
 
 ## CarlaConnector
 - **Purpose:**  
@@ -197,6 +197,7 @@ more details in [ControllerManager README](hse/docs/controller_manager_README.md
 - clone carla_scene_graphs manually
 - after the first key binding make sure to connect to carla, sometimes the changes are not saved otherwise
 - after connection loss restart app
+- no open carla-folder until a version is selected
 
 
 ## License & Credits

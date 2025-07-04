@@ -29,7 +29,7 @@ def build_ui(window):
 
     input_ip = QLineEdit("localhost", group_connector)
     input_port = QLineEdit("2000", group_connector)
-    layout_connector.addRow("IP-Adresse:", input_ip)
+    layout_connector.addRow("IP-Address:", input_ip)
     layout_connector.addRow("Port:", input_port)
 
     toolButton = QToolButton(group_connector)
@@ -155,7 +155,7 @@ def build_ui(window):
 
 
 
-    # === Menü ===
+    # === Menu ===
     menubar = QMenuBar(window)
     window.setMenuBar(menubar)
 

@@ -76,5 +76,5 @@ On close (`closeEvent`):
 
 **See Also:**
 
-* [Main README](../README.md)
+* [Main README](../../README.md)
 

@@ -42,12 +42,10 @@ class ControllerManager(QObject):
         # Hardware Check, no reason to start if there is no connected Controller
         if device_count == 0:
             from PyQt5.QtWidgets import QMessageBox, QApplication
-            # Fehlermeldung anzeigen
             QMessageBox.critical(None, "ERROR", "No Controller Device found!\nShutdown App...")
             # Qt-Event-Loop terminate
             QApplication.quit()
-            # Python exit
-            import sys; sys.exit(1)        
+            sys.exit(1)        
 
         for current_joystick_index in range(device_count):
             current_joystick = pygame.joystick.Joystick(current_joystick_index)
@@ -118,9 +116,6 @@ class ControllerManager(QObject):
             self.raw_axes   = {}
             self.raw_buttons = {}
 
-
-
-
         # Load control mappings (function -> {type, id}) from state, default to empty
         self.controls_cfg: Dict[str, Dict[str, Optional[int]]] = self.data.get("controls", {})
 
@@ -132,12 +127,12 @@ class ControllerManager(QObject):
             for func in self.controls_cfg
         }
 
-
         # Threading primitives for continuous background scanning
         self._lock = threading.Lock()
         self._running = True
         self._thread = threading.Thread(target=self._scan_loop, daemon=True)
         self._thread.start()
+
 
     def _scan_loop(self):
         """Background thread: polls pygame and updates raw state dicts."""
@@ -155,7 +150,6 @@ class ControllerManager(QObject):
                     # update each button state (int 0 or 1)
                     for btn_idx in list(self.raw_buttons.keys()):
                         self.raw_buttons[btn_idx] = int(self.current_joystick.get_button(btn_idx))
-
 
             time.sleep(0.033)   # ~30Hz
 
@@ -255,6 +249,7 @@ class ControllerManager(QObject):
             self.current_joystick.quit()
         pygame.quit()
         print("ControllerManager says Goodbye!")
+
 
 
 if __name__ == "__main__":

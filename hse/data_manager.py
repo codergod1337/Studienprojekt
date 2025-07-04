@@ -25,6 +25,7 @@ class DataManager:
         self._validate_and_load()
         self._scan_carla_versions()  
 
+
     def _validate_and_load(self) -> None:
         """
         Load JSON config from CONFIG_PATH, merge with DEFAULT_VALUES,
@@ -92,7 +93,6 @@ class DataManager:
             print("💾 state.json updated with default values and corrections.")
 
 
-
     def _load_json(self, path: Path) -> Dict[str, Any]:
         """
         Helper to load JSON data from a file. Returns an empty dict on error.
@@ -107,6 +107,7 @@ class DataManager:
         except Exception as e:
             print(f"Error loading {path.name}: {e}")
             return {}
+
 
     def _save_json(self, path: Path, data: Dict[str, Any]) -> None:
         """
@@ -167,7 +168,6 @@ class DataManager:
             print(f"    → {CARLA_DIR}")
 
 
-
     def get_next_record_folder(self) -> Path:
         """
         Create and return a new record folder under DATA_DIR/record/YYYY-MM-DD/record_N.
@@ -191,7 +191,6 @@ class DataManager:
 
         return folder
     
-
 
 
 if __name__ == "__main__":
