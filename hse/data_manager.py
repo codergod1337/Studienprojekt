@@ -8,7 +8,7 @@ sys.path.append(str(root_path))
 
 import datetime
 from typing import Any, Dict
-from hse.utils.settings import CONFIG_PATH, DEFAULT_VALUES, CARLA_DIR, DATA_DIR
+from hse.utils.settings import CONFIG_PATH, DEFAULT_VALUES, CARLA_DIR, DATA_DIR, MAP_DIR
 
 
 class DataManager:
@@ -23,7 +23,7 @@ class DataManager:
         self.state = {}
         self.carla_versions: list[str] = []
         self._validate_and_load()
-        self._scan_carla_versions()  
+        self._scan_carla_versions()             
 
 
     def _validate_and_load(self) -> None:
@@ -190,7 +190,7 @@ class DataManager:
         self.set("last_record_number", next_num)
 
         return folder
-    
+
 
 
 if __name__ == "__main__":

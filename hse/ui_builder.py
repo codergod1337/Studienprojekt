@@ -174,6 +174,10 @@ def build_ui(window):
     # ── Camera‐Submenü ──
     menu_camera = QMenu("Camera", window)
     menu_carla.addMenu(menu_camera)
+    # ── Map‐Submenü ──
+    menu_map = QMenu("Map", window)
+    menu_carla.addMenu(menu_map)
+    refs["menu_map"] = menu_map
 
     menu_file.addAction(action_pull_sgg)
     menu_file.addSeparator()
@@ -197,14 +201,14 @@ def build_ui(window):
     refs["menu_camera"] = menu_camera
 
     # === Statusbar ===
-    statusbar = QStatusBar(window)
-    window.setStatusBar(statusbar)
-    label_conn_status = QLabel("Disconnected")
-    label_conn_status.setStyleSheet("color: red;")
-    label_output1 = QLabel("—")
-    label_output2 = QLabel("—")
-    statusbar.addWidget(label_conn_status)
-    statusbar.addWidget(label_output1)
-    statusbar.addWidget(label_output2)
+    #statusbar = QStatusBar(window)
+    #window.setStatusBar(statusbar)
+    #label_conn_status = QLabel("Disconnected")
+    #label_conn_status.setStyleSheet("color: red;")
+    #label_output1 = QLabel("—")
+    #label_output2 = QLabel("—")
+    #statusbar.addWidget(label_conn_status)
+    #statusbar.addWidget(label_output1)
+    #statusbar.addWidget(label_output2)
 
     return refs

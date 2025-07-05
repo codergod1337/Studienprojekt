@@ -30,13 +30,14 @@ class CarlaConnector(QObject):
     then reads host/port/version from DataManager and establishes CARLA connection.
     """
     # Signals to communicate back to the GUI thread:
-    connection_result        = pyqtSignal(bool, str)   # success flag + message
-    blueprints_loaded        = pyqtSignal(list)        # emitted with list[str] of vehicle blueprints
-    vehicle_model_selected   = pyqtSignal(str)         # emitted when user picks a model
-    camera_position_selected = pyqtSignal(str)         # emitted when camera choice changes
+    connection_result        = pyqtSignal(bool, str)    # success flag + message
+    blueprints_loaded        = pyqtSignal(list)         # emitted with list[str] of vehicle blueprints
+    vehicle_model_selected   = pyqtSignal(str)          # emitted when user picks a model
+    camera_position_selected = pyqtSignal(str)          # emitted when camera choice changes
     frame_recorded           = pyqtSignal(int)          # emitted after each recorded frame
     recording_status         = pyqtSignal(bool)
-
+    map_changed              = pyqtSignal(str)          # from GUI 
+    official_maps_loaded     = pyqtSignal(list)         # emit after _initialize_connection
 
     def __init__(self, data_manager: DataManager):
         super().__init__()
@@ -66,6 +67,9 @@ class CarlaConnector(QObject):
 
         # Have we loaded blueprints yet?
         self._blueprints_loaded  = False
+        
+        # load a new map? coming from GUI thread per signal
+        self._map_queue = queue.Queue()
 
         # Recording state and folder
         self._recording_active   = False
@@ -388,6 +392,13 @@ class CarlaConnector(QObject):
             self._abstract_er        = ER
             self._ego_not_in_lane_ex = EgoNotInLaneException
             
+            #Scan for official Maps
+            # Offizielle Maps per CARLA-API abfragen (korrigiert den EmptyMap-Bug)
+            raw = client.get_available_maps()
+            # raw = ['/Game/Carla/Maps/Town01', …]
+            self.official_maps = [p.rsplit('/', 1)[-1] for p in raw]
+            self.official_maps_loaded.emit(self.official_maps)        
+                     
             return True
         except Exception as e:
             self.connection_result.emit(False, f"Connection failed: {e}")
@@ -427,6 +438,7 @@ class CarlaConnector(QObject):
     def _simulation_loop(self):
         """
         Core loop: while running and connected:
+         - map_change?
          - tick()
          - spawn
          - control
@@ -434,6 +446,9 @@ class CarlaConnector(QObject):
          - sgg
         """
         while self._running and self._client:
+            # 0) map change?
+            self._process_map_change()
+            
             # 1) Advance the world one synchronous tick
             snapshot = self._world.tick()
 
@@ -656,6 +671,39 @@ class CarlaConnector(QObject):
         self._record_queue.put((frame, ego_id, control_copy, self._record_base_folder))
 
 
+    @pyqtSlot(str)
+    def set_map(self, map_id: str):
+        # speichert auch im DataManager, falls gewünscht
+        self.data.set("map_selected", map_id)
+        self._map_queue.put(map_id)
+        self.map_changed.emit(map_id)
 
 
+    def _process_map_change(self):
+        try:
+            map_id = self._map_queue.get_nowait()
+        except queue.Empty:
+            return
+
+        # 1) Map laden
+        world = self._client.load_world(map_id)
+        # 2) Sync‐Settings neu setzen
+        settings = world.get_settings()
+        settings.synchronous_mode    = True
+        settings.fixed_delta_seconds = 0.01
+        world.apply_settings(settings)
+        tm = self._client.get_trafficmanager()
+        tm.set_synchronous_mode(True)
+
+        # 3) Alte Fahrzeuge entfernen
+        for actor in self._spawned_vehicles:
+            try: actor.destroy()
+            except: pass
+        self._spawned_vehicles.clear()
+
+        # 4) Neue Welt merken und Kamerapreset/Blueprints erneut anwenden
+        with self._lock:
+            self._world = world
+        self._load_and_select_blueprints(world)
+        self._auto_select_camera(world)
 

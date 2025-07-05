@@ -15,6 +15,7 @@ CARLA_DIR = ROOT_DIR / "CARLA"
 SGG_DIR = ROOT_DIR / "carla_scene_graphs" 
 DATA_DIR = ROOT_DIR / "hse" / "data"
 CONFIG_PATH = DATA_DIR / "state.json"
+MAP_DIR   = ROOT_DIR / "hse" / "maps"
 
 
 # === Simulation parameters ===

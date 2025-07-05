@@ -42,6 +42,8 @@ class ControlPanel(QMainWindow):
         # Set up signal-slot connections for UI interactions              
         self._init_connections()
         
+        self._official_maps = []
+        
 
         # Disable the spawn button until a successful connection and model selection
         self.refs["spawn_button"].setEnabled(False)
@@ -73,14 +75,17 @@ class ControlPanel(QMainWindow):
 
         # Populate camera selection menu with data from settings
         self._populate_camera_menu()
-
+        # populate maps with map list form datamanager
+        self._populate_map_menu()
+        
+        
 
         # Subscribe to connector events for connection results, blueprint loading etc...
         self.connector.connection_result.connect(self._on_connector_result)
         self.connector.blueprints_loaded.connect(self._populate_vehicle_menu)
         self.connector.vehicle_model_selected.connect(self._update_vehicle_label)
         self.connector.camera_position_selected.connect(self._update_camera_label)
-
+        self.connector.official_maps_loaded.connect(self._on_official_maps_loaded)
         # Link the spawn button to the connector's spawn_vehicle method
         self.refs["spawn_button"].clicked.connect(self._on_spawn_clicked)
 
@@ -100,6 +105,12 @@ class ControlPanel(QMainWindow):
             self._control_win = JoystickVisualizer(self.cm)
             self._control_win.show()
 
+
+    @pyqtSlot(list)
+    def _on_official_maps_loaded(self, maps: list):
+        """Wird nach connect() gerufen und liefert offizielle CARLA-Maps."""
+        self._official_maps = maps
+        self._populate_map_menu()
 
     def _populate_camera_menu(self):
         """Clear existing camera menu and add actions for each predefined camera position"""
@@ -364,6 +375,25 @@ class ControlPanel(QMainWindow):
             # When selected, instruct the connector to use this vehicle model.
             action.triggered.connect(lambda checked, bp=bp_id: self.connector.set_vehicle_model(bp))
             menu.addAction(action)
+
+
+    def _populate_map_menu(self):
+        """Map‐Menu population"""
+        menu = self.refs["menu_map"]
+        menu.clear()
+        # Nur die offiziellen Maps vom Server
+        for map_id in self._official_maps:
+           act = QAction(map_id, self)
+           act.triggered.connect(lambda _, m=map_id: self._on_map_selected(m))
+           menu.addAction(act)
+
+
+    @pyqtSlot(str)
+    def _on_map_selected(self, map_id: str):
+        # 1. Persistieren
+        self.data.set("map_selected", map_id)
+        # 2. An Connector weiterreichen
+        self.connector.set_map(map_id)
 
 
     @pyqtSlot(str)
